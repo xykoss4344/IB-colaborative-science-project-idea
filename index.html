@@ -186,6 +186,11 @@
             <span class="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
             <span>IV: PLANETARY SWARM</span>
           </button>
+          
+          <button id="tab-btn-stakeholder" class="w-full text-left py-2.5 px-3 rounded-lg text-xs font-mono tracking-wider text-slate-500 hover:text-slate-300 hover:bg-slate-900/40 border border-transparent transition-all flex items-center space-x-2.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+            <span>V: STAKEHOLDER DEFENSE</span>
+          </button>
         </div>
       </div>
       
@@ -611,6 +616,77 @@
         </div>
       </div>
 
+      <!-- ========================================== -->
+      <!-- TAB 5: STAKEHOLDER DEFENSE & UNSDG MATRIX -->
+      <!-- ========================================== -->
+      <div id="tab-content-stakeholder" class="hidden absolute inset-0 p-6 flex flex-col gap-6 overflow-y-auto custom-scroll tab-content font-mono">
+        <div class="border-l-2 border-sky-500 pl-3 py-1 bg-slate-950/30 shrink-0">
+          <h2 class="text-base font-bold text-sky-400 tracking-wider">HELIOS-NET STAKEHOLDER MATRIX & UNSDG VALIDATION</h2>
+          <span class="text-[9px] text-slate-500">Ethical, Financial, & Ecological Program Justifications</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
+          
+          <!-- Accordion/Card 1: Financial Sector -->
+          <div class="bg-slate-900/20 border border-sky-950/50 p-5 rounded-xl space-y-3 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center space-x-2 border-b border-sky-950/50 pb-2">
+                <span class="text-xs font-bold text-sky-500 font-mono">UNSDG 7 & 9</span>
+                <h3 class="text-xs font-bold text-slate-200 uppercase">Financial Capital Defense</h3>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                <strong>Query:</strong> How can Singapore defend the initial capital expenditures of a 10,000-node LEO swarm constellation?
+              </p>
+              <p class="text-[10px] text-slate-500 leading-relaxed border-l border-sky-950/50 pl-2">
+                Unlike traditional hydrocarbon assets that incur massive feedstock, transportation, and carbon penalty costs, HELIOS-NET generators utilize solid-state thermoelectric elements with **zero moving components**. This eliminates ongoing operational maintenance (OPEX) and fuel dependencies. Orbital payload deployment costs are offset by the modular assembly line scale, offering cheap, continuous clean electricity.
+              </p>
+            </div>
+            <div class="text-[9px] text-sky-600 border-t border-sky-950/50 pt-2 font-bold uppercase tracking-wider">
+              Goal 7: Affordable & Clean Energy
+            </div>
+          </div>
+
+          <!-- Accordion/Card 2: Ecological Auditor -->
+          <div class="bg-slate-900/20 border border-sky-950/50 p-5 rounded-xl space-y-3 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center space-x-2 border-b border-sky-950/50 pb-2">
+                <span class="text-xs font-bold text-amber-500 font-mono">UNSDG 13 & 15</span>
+                <h3 class="text-xs font-bold text-slate-200 uppercase">Ecological Audit</h3>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                <strong>Query:</strong> What are the ecological impacts of energy radiation and structural lifecycles?
+              </p>
+              <p class="text-[10px] text-slate-500 leading-relaxed border-l border-sky-950/50 pl-2">
+                Laser venting (70%) rejects thermal infrared radiation directly into the deep space vacuum sink, removing energy from the biosphere. Microwave transmission (30%) is strictly set to 5.8 GHz, which does not ionize gases, heat clouds, or disturb bird/pollinator flight vectors. The node structural materials (primarily silicon, graphene, and bismuth alloys) are recyclable and designed for total atmospheric re-entry vaporization, leaving zero orbital debris.
+              </p>
+            </div>
+            <div class="text-[9px] text-amber-600 border-t border-sky-950/50 pt-2 font-bold uppercase tracking-wider">
+              Goal 13: Climate Action
+            </div>
+          </div>
+
+          <!-- Accordion/Card 3: Public Welfare Advocate -->
+          <div class="bg-slate-900/20 border border-sky-950/50 p-5 rounded-xl space-y-3 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex items-center space-x-2 border-b border-sky-950/50 pb-2">
+                <span class="text-xs font-bold text-purple-400 font-mono">UNSDG 1 & 10</span>
+                <h3 class="text-xs font-bold text-slate-200 uppercase">Welfare & Social Equity</h3>
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                <strong>Query:</strong> How does the system prevent green gentrification and utility hikes?
+              </p>
+              <p class="text-[10px] text-slate-500 leading-relaxed border-l border-sky-950/50 pl-2">
+                The 30% energy beamed back to ground rectennas will be routed exclusively through a state-regulated utility network. Rather than privatizing energy profits, a "Vulnerable Citizens Subsidy Index" is coded into the tariff framework. Beamed grid capacity directly cross-subsidizes utility costs for lower-income blocks. This prevents carbon taxation and green energy transitions from penalizing vulnerable communities.
+              </p>
+            </div>
+            <div class="text-[9px] text-purple-600 border-t border-sky-950/50 pt-2 font-bold uppercase tracking-wider">
+              Goal 10: Reduced Inequalities
+            </div>
+          </div>
+
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -639,6 +715,10 @@
       swarm: {
         btn: document.getElementById('tab-btn-swarm'),
         content: document.getElementById('tab-content-swarm')
+      },
+      stakeholder: {
+        btn: document.getElementById('tab-btn-stakeholder'),
+        content: document.getElementById('tab-content-stakeholder')
       }
     };
 
@@ -653,7 +733,7 @@
           tab.btn.classList.remove('border-transparent', 'text-slate-500');
           tab.content.classList.remove('hidden');
           // Add flex classes back if not hidden
-          if (key === 'crisis' || key === 'qgan' || key === 'physics') {
+          if (key === 'crisis' || key === 'qgan' || key === 'physics' || key === 'stakeholder') {
             tab.content.classList.add('flex');
           }
         } else {
@@ -688,6 +768,7 @@
     tabs.qgan.btn.addEventListener('click', () => setActiveTab('qgan'));
     tabs.physics.btn.addEventListener('click', () => setActiveTab('physics'));
     tabs.swarm.btn.addEventListener('click', () => setActiveTab('swarm'));
+    tabs.stakeholder.btn.addEventListener('click', () => setActiveTab('stakeholder'));
 
     // -------------------------------------------------------------
     // TAB 1: OIL DEPLETION TICKER COUNTDOWN & FLUID CANVAS
@@ -1378,7 +1459,7 @@
 
     // LEO Dyson Swarm Constellation
     const spaceNodes = [];
-    const numNodes = 14;
+    const numNodes = 40; // Increased base constellation nodes to 40 for higher density rendering
     for (let i = 0; i < numNodes; i++) {
       spaceNodes.push({
         id: `HELIOS-${100 + i}`,
