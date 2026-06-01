@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project HELIOS-NET | Systems Engineering & Atmospheric Physics Workstation</title>
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Share Tech Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['"Share Tech Mono"', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              bg: '#030712',      // deep slate-950
+              panel: '#090d16',   // dark cyber panel
+              border: '#0891b2',  // cyan-600
+              accent: '#06b6d4',  // neon cyan
+              amber: '#d97706',   // neon amber
+              green: '#10b981',   // neon emerald
+              red: '#ef4444',     // neon red
+              blue: '#3b82f6',    // neon blue
+              purple: '#d946ef',  // neon purple
+            }
+          },
+          boxShadow: {
+            'cyan-glow': '0 0 15px rgba(6, 182, 212, 0.4)',
+            'amber-glow': '0 0 15px rgba(217, 119, 6, 0.4)',
+            'red-glow': '0 0 15px rgba(239, 68, 68, 0.4)',
+            'green-glow': '0 0 15px rgba(16, 185, 129, 0.4)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Cyberpunk HUD styling */
+    body {
+      background-color: #030712;
+      font-family: 'Share Tech Mono', monospace;
+      color: #cbd5e1;
+      overflow: hidden;
+    }
+    
+    /* Scanline effect */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      );
+      background-size: 100% 4px;
+      z-index: 999;
+      opacity: 0.35;
+    }
+
+    /* Cyber grid pattern */
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(6, 182, 212, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(6, 182, 212, 0.02) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+
+    /* Glow text */
+    .glow-cyan {
+      text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+    }
+    .glow-amber {
+      text-shadow: 0 0 8px rgba(217, 119, 6, 0.6);
+    }
+    .glow-green {
+      text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+    .glow-red {
+      text-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    }
+
+    /* Scrollbar */
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(9, 13, 22, 0.5);
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(6, 182, 212, 0.3);
+      border-radius: 2px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(6, 182, 212, 0.6);
+    }
+
+    /* Cyber alarm borders */
+    @keyframes border-flash {
+      0%, 100% { border-color: rgba(239, 68, 68, 0.2); }
+      50% { border-color: rgba(239, 68, 68, 0.85); box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+    }
+    .alarm-active {
+      animation: border-flash 1s infinite;
+    }
+
+    @keyframes pulse-demo {
+      0% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0.3; }
+    }
+    .demo-pulse {
+      animation: pulse-demo 1.8s infinite;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col select-none grid-bg">
+  <div class="scanlines"></div>
+
+  <!-- Main HUD Header -->
+  <header class="h-16 border-b border-cyan-950 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between z-10 shrink-0">
+    <div class="flex items-center space-x-4">
+      <div class="w-3 h-3 rounded-full bg-cyan-500 shadow-cyan-glow animate-pulse"></div>
+      <div>
+        <h1 class="text-lg font-bold tracking-widest text-cyan-400 glow-cyan">HELIOS-NET // ENGINE DECK</h1>
+        <p class="text-[9px] uppercase text-slate-500 tracking-wider">Planetary Heat Harvesting & Thermodynamics Control Console</p>
+      </div>
+    </div>
+    
+    <div class="hidden md:flex items-center space-x-8 text-xs font-mono text-slate-400">
+      <div>
+        <span class="text-slate-600 block text-[9px] uppercase">Atmospheric Model</span>
+        <span class="text-cyan-400">2D CROSS-SECTION</span>
+      </div>
+      <div>
+        <span class="text-slate-600 block text-[9px] uppercase">Sec. Sync Status</span>
+        <span class="text-emerald-400 font-bold">QKD STABLE</span>
+      </div>
+      <div>
+        <span class="text-slate-600 block text-[9px] uppercase">System Clock</span>
+        <span id="systime" class="text-slate-300">00:00:00 UTC</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workstation Layout (Viewport vs Telemetry Sidebar) -->
+  <main id="main-container" class="flex-1 p-4 gap-4 grid grid-cols-1 lg:grid-cols-3 overflow-hidden h-[calc(100vh-4rem-1.5rem)] min-h-[500px]">
+    
+    <!-- LEFT PANEL: Atmospheric Cross-Section Canvas -->
+    <section class="lg:col-span-2 flex flex-col bg-slate-950/80 border border-slate-900 rounded-xl overflow-hidden relative shadow-2xl h-full">
+      <!-- HUD Header overlay -->
+      <div class="absolute top-0 inset-x-0 p-4 flex items-center justify-between pointer-events-none z-10">
+        <div class="bg-slate-950/90 border border-cyan-500/20 px-3 py-1.5 rounded-lg flex items-center space-x-4 text-xs font-mono text-cyan-400 shadow-lg">
+          <span class="flex items-center"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400 mr-2 animate-ping"></span>SCHEMATIC VIEWPORT</span>
+          <span class="text-slate-600">|</span>
+          <span id="fps-counter">FPS: --</span>
+        </div>
+        <div class="bg-slate-950/90 border border-slate-800 px-3 py-1.5 rounded-lg text-xs font-mono text-slate-400 shadow-lg flex items-center space-x-2">
+          <span>Simulation Speed:</span>
+          <span class="text-amber-500 font-bold">1.0x (REAL TIME)</span>
+        </div>
+      </div>
+
+      <!-- Canvas container wrapper (Absolute layout fix) -->
+      <div class="flex-1 w-full relative" id="canvas-container">
+        <canvas id="viewport-canvas" class="absolute inset-0 w-full h-full"></canvas>
+        
+        <!-- Ambient HUD graphics in corners of Canvas -->
+        <div class="absolute bottom-4 left-4 font-mono text-[9px] text-slate-600 pointer-events-none">
+          <div class="border-l border-b border-cyan-500/10 pl-2 pb-1">
+            <span class="block text-cyan-500/40 font-bold text-xs mb-0.5">PHYSICAL BOUNDARIES</span>
+            <div>LEO Constellation Altitude: 420 km</div>
+            <div>Stratosphere Meshing: 20 km</div>
+            <div>Greenhouse Gas Barrier: ~12 km</div>
+            <div>Tropospheric Plumes: Convective</div>
+          </div>
+        </div>
+        
+        <div class="absolute bottom-4 right-4 font-mono text-[9px] text-slate-600 pointer-events-none text-right">
+          <div class="border-r border-b border-cyan-500/10 pr-2 pb-1">
+            <span class="block text-cyan-500/40 font-bold text-xs mb-0.5">WAVELENGTH MODES</span>
+            <div>Venting emission: 1,064 nm Laser</div>
+            <div>Atmospheric Window: 8.0 - 13.0 μm</div>
+            <div>Terrestrial Link: 5.8 GHz Microwaves</div>
+            <div>waste-heat Near-IR: 1.2 - 2.5 μm</div>
+          </div>
+        </div>
+
+        <!-- Alarm Overlay -->
+        <div id="alarm-overlay" class="hidden absolute inset-0 alarm-active border-2 border-red-500/0 pointer-events-none transition-all duration-300">
+          <div class="absolute top-16 left-1/2 transform -translate-x-1/2 bg-red-950/95 border border-red-500 text-red-500 px-6 py-2 rounded-lg font-mono text-xs tracking-widest flex items-center space-x-4 shadow-red-glow font-bold">
+            <span class="animate-ping w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <span>CYBER SECURITY WARNING: TELEMETRY ANOMALY IN TIER 3</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL: Telemetry Dashboard & Controls -->
+    <section id="sidebar-container" class="lg:col-span-1 flex flex-col bg-slate-950/80 border border-slate-900 rounded-xl overflow-hidden shadow-2xl h-full">
+      
+      <!-- Tabs Navigation -->
+      <nav class="flex border-b border-slate-900 bg-slate-950 shrink-0">
+        <button id="tab-btn-controls" class="flex-1 py-3 text-xs font-mono tracking-wider font-bold border-b-2 border-cyan-500 bg-slate-900/40 text-cyan-400 transition-all focus:outline-none">
+          SYSTEM CONTROLS
+        </button>
+        <button id="tab-btn-cost" class="flex-1 py-3 text-xs font-mono tracking-wider text-slate-500 border-b-2 border-transparent hover:text-slate-300 transition-all focus:outline-none">
+          COST & SPECS
+        </button>
+        <button id="tab-btn-explain" class="flex-1 py-3 text-xs font-mono tracking-wider text-slate-500 border-b-2 border-transparent hover:text-slate-300 transition-all focus:outline-none">
+          BRIEFING
+        </button>
+      </nav>
+
+      <!-- TAB 1: CONTROLS & PHYSICS READOUTS -->
+      <div id="tab-content-controls" class="flex-1 flex flex-col p-4 space-y-4 overflow-y-auto custom-scroll">
+        
+        <!-- Toggle Auto-Demo Button -->
+        <div class="shrink-0">
+          <button id="btn-toggle-demo" class="w-full py-2.5 px-4 bg-cyan-950 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-900 font-mono rounded-lg font-bold shadow-md hover:shadow-lg transition-all tracking-wider flex items-center justify-center space-x-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" id="demo-indicator"></span>
+            <span id="demo-btn-text">ACTIVATE INTERACTIVE DEMO</span>
+          </button>
+        </div>
+
+        <!-- Stefan-Boltzmann & Carnot calculations meters -->
+        <div class="grid grid-cols-1 gap-3 shrink-0">
+          <!-- Stefan-Boltzmann Law Output -->
+          <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+            <div>
+              <span class="text-[9px] text-slate-500 tracking-wider font-bold uppercase block">Upwelling Thermal Flux (Stefan-Boltzmann)</span>
+              <div class="flex items-baseline space-x-1.5 mt-0.5">
+                <span id="tel-sb-flux" class="text-lg font-bold text-amber-500 font-mono tracking-tight glow-amber">390.08</span>
+                <span class="text-[10px] text-slate-500 font-mono">W/m²</span>
+              </div>
+            </div>
+            <div class="text-right text-[9px] font-mono text-slate-400 border-l border-slate-800 pl-3">
+              <div>j* = ε σ T⁴</div>
+              <div>T_earth = <span id="tel-sb-t" class="text-amber-500">288.15</span> K</div>
+            </div>
+          </div>
+
+          <!-- Carnot Efficiency Meter -->
+          <div class="bg-slate-900/60 border border-slate-800 p-3 rounded-lg flex justify-between items-center">
+            <div>
+              <span class="text-[9px] text-slate-500 tracking-wider font-bold uppercase block">Carnot Thermoelectric Limit (Seebeck Effect)</span>
+              <div class="flex items-baseline space-x-1.5 mt-0.5">
+                <span id="tel-carnot" class="text-lg font-bold text-cyan-400 font-mono tracking-tight glow-cyan">98.96</span>
+                <span class="text-[10px] text-slate-500 font-mono">%</span>
+              </div>
+            </div>
+            <div class="text-right text-[9px] font-mono text-slate-400 border-l border-slate-800 pl-3">
+              <div>η_max = 1 - Tc/Th</div>
+              <div>Tc = 3 K | Th = <span id="tel-carnot-th">288.1</span> K</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry Indicators Grid -->
+        <div class="grid grid-cols-2 gap-3 shrink-0">
+          <div class="bg-slate-900/40 border border-slate-900 p-3 rounded-lg flex flex-col justify-between">
+            <span class="text-[9px] text-slate-500 tracking-wider font-bold uppercase">Intercepted Energy</span>
+            <div class="flex items-baseline space-x-1 mt-1">
+              <span id="tel-power" class="text-xl font-bold text-cyan-400 font-mono tracking-tight glow-cyan">0.00</span>
+              <span class="text-xs text-slate-500 font-mono">GW</span>
+            </div>
+            <div class="w-full bg-slate-950 h-1 rounded overflow-hidden mt-2">
+              <div id="tel-power-bar" class="bg-cyan-500 h-full w-[40%] transition-all"></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/40 border border-slate-900 p-3 rounded-lg flex flex-col justify-between">
+            <span class="text-[9px] text-slate-500 tracking-wider font-bold uppercase">Net Radiation Forcing</span>
+            <div class="flex items-baseline space-x-1 mt-1">
+              <span id="tel-forcing" class="text-xl font-bold font-mono tracking-tight text-emerald-400 glow-green">+1.85</span>
+              <span class="text-xs text-slate-500 font-mono">W/m²</span>
+            </div>
+            <p class="text-[8px] text-slate-500 mt-1 font-bold" id="tel-forcing-desc">Greenhouse accumulation load</p>
+          </div>
+
+          <div class="bg-slate-900/40 border border-slate-900 p-3 rounded-lg flex flex-col justify-between col-span-2">
+            <div class="flex justify-between items-center">
+              <span class="text-[9px] text-slate-500 tracking-wider font-bold uppercase">Projected Climate Delta (ΔT)</span>
+              <span id="tel-temp" class="text-xl font-bold font-mono tracking-tight text-emerald-400 glow-green">+1.57°C</span>
+            </div>
+            <div class="w-full bg-slate-950 h-1.5 rounded overflow-hidden mt-2">
+              <div id="tel-temp-bar" class="bg-emerald-500 h-full w-[80%] transition-all"></div>
+            </div>
+            <p class="text-[8px] text-slate-500 mt-1 font-bold" id="tel-temp-desc">Climate offset temperature delta</p>
+          </div>
+        </div>
+
+        <!-- Sliders Dashboard -->
+        <div class="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-4 shrink-0">
+          <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase border-b border-slate-900 pb-2">Swarm System Sliders</h3>
+          
+          <!-- Slider 1: Swarm Density -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-slate-400">LEO Swarm Density</span>
+              <span id="val-density" class="text-cyan-400 font-bold">4,000 Nodes</span>
+            </div>
+            <input type="range" id="slider-density" min="0" max="10000" step="100" value="4000" 
+              class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-500 focus:outline-none">
+            <div class="flex justify-between text-[8px] text-slate-600 font-mono font-bold">
+              <span>0 (OFFLINE)</span>
+              <span>10,000 ACTIVE NODES</span>
+            </div>
+          </div>
+
+          <!-- Slider 2: Metamaterial Absorption Efficiency -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-slate-400">Metamaterial Absorber (8-13 μm)</span>
+              <span id="val-efficiency" class="text-amber-500 font-bold">65%</span>
+            </div>
+            <input type="range" id="slider-efficiency" min="0" max="100" value="65" 
+              class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-amber-500 focus:outline-none">
+            <div class="flex justify-between text-[8px] text-slate-600 font-mono font-bold">
+              <span>0% (REFLECTIVE)</span>
+              <span>100% (CARNOT CONVERTER)</span>
+            </div>
+          </div>
+
+          <!-- Slider 3: Off-World Export Split -->
+          <div class="space-y-1">
+            <div class="flex justify-between text-xs font-mono">
+              <span class="text-slate-400">Laser Heat Export Ratio</span>
+              <span id="val-split" class="text-cyan-400 font-bold">70% Space Dump</span>
+            </div>
+            <input type="range" id="slider-split" min="0" max="100" value="70" 
+              class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-500 focus:outline-none">
+            <div class="flex justify-between text-[8px] text-slate-600 font-mono font-bold">
+              <span>100% Terrestrial Beaming</span>
+              <span>100% Space Laser Dumping</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Terminal Log -->
+        <div class="flex-1 flex flex-col bg-slate-950 border border-slate-900 rounded-xl overflow-hidden min-h-[150px]">
+          <!-- Log Header -->
+          <div class="bg-slate-900/60 px-3 py-2 border-b border-slate-900 flex items-center justify-between text-[10px] font-mono text-slate-500">
+            <span class="flex items-center space-x-1.5 font-bold">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-green-glow" id="status-dot"></span>
+              <span>CYBER-PHYSICAL SECURITY STATUS</span>
+            </span>
+            <button id="btn-trigger-exploit" class="px-2 py-0.5 border border-red-500/40 text-red-400 hover:bg-red-950 hover:border-red-500 rounded text-[9px] font-bold transition-all bg-slate-950">
+              SYS_EXPLOIT
+            </button>
+          </div>
+          <!-- Logs text -->
+          <div id="security-log" class="flex-1 p-3 overflow-y-auto font-mono text-[9px] text-slate-400 space-y-1 custom-scroll">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: SYSTEM CAPEX/OPEX DIAGNOSTICS -->
+      <div id="tab-content-cost" class="hidden flex-1 flex flex-col p-4 space-y-4 overflow-y-auto custom-scroll">
+        <div class="space-y-4">
+          
+          <!-- Cost diagnostic panel -->
+          <div class="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
+            <h3 class="text-xs font-bold tracking-wider text-slate-400 uppercase border-b border-slate-900 pb-2">Dynamic CAPEX / OPEX Diagnostics</h3>
+            
+            <div class="space-y-2 text-xs font-mono">
+              <div class="flex justify-between">
+                <span class="text-slate-500">Tier 1 Ground Arrays:</span>
+                <span id="cost-t1" class="text-slate-300 font-bold">$12.40 B</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Tier 2 Stratospheric Balloons:</span>
+                <span id="cost-t2" class="text-slate-300 font-bold">$8.20 B</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Tier 3 LEO Dyson Nodes:</span>
+                <span id="cost-t3" class="text-slate-300 font-bold">$54.50 B</span>
+              </div>
+              <div class="flex justify-between border-t border-slate-900 pt-2 font-bold text-sm">
+                <span class="text-slate-400">Total Program CAPEX:</span>
+                <span id="cost-capex" class="text-cyan-400 glow-cyan">$75.10 B</span>
+              </div>
+              <div class="flex justify-between pt-1">
+                <span class="text-slate-500">Annual System OPEX:</span>
+                <span id="cost-opex" class="text-amber-500 glow-amber">$6.20 B / yr</span>
+              </div>
+            </div>
+            
+            <p class="text-[9px] text-slate-500 leading-relaxed border-t border-slate-900 pt-2">
+              *Expenditure models dynamically scale relative to Swarm Node count and TPV surface area. Ground array cost represents microwave rectenna installation. Space cost includes orbital launch boosters and metamaterial absorptive coatings.
+            </p>
+          </div>
+
+          <!-- Materials Details -->
+          <div class="bg-slate-900/40 border border-slate-900 p-4 rounded-xl space-y-3">
+            <h3 class="text-xs font-bold tracking-wider text-slate-400 uppercase border-b border-slate-900 pb-2">Physical Specifications</h3>
+            
+            <div class="space-y-3 text-xs leading-normal">
+              <div>
+                <span class="text-cyan-400 font-mono block text-[11px] font-bold">Metamaterial LWIR Absorber</span>
+                <p class="text-[9px] text-slate-500 mt-0.5">
+                  Engineered nano-cavity resonance array positioned on the Earth-facing plate of LEO nodes. Specially configured for absorption coefficients approaching ε=0.98 within the 8.0 - 13.0 μm atmospheric window.
+                </p>
+              </div>
+
+              <div>
+                <span class="text-amber-500 font-mono block text-[11px] font-bold">Superconducting Thermoelectrics</span>
+                <p class="text-[9px] text-slate-500 mt-0.5">
+                  Seebeck ribbon converters structured from Bismuth Telluride (Bi₂Te₃) alloy. Harvests the steep temperature differential between the heated metamaterial collector (~288K) and the cryogenic space cooling pipe (~3K).
+                </p>
+              </div>
+
+              <div>
+                <span class="text-cyan-400 font-mono block text-[11px] font-bold">Solid-State Space Laser Core</span>
+                <p class="text-[9px] text-slate-500 mt-0.5">
+                  High-efficiency Nd:YAG semiconductor lasers operating at 1,064 nm. Converts captured electrical potential directly into directed energy vectors fired off-world.
+                </p>
+              </div>
+
+              <div>
+                <span class="text-emerald-500 font-mono block text-[11px] font-bold">Dual-Channel Rectennas</span>
+                <p class="text-[9px] text-slate-500 mt-0.5">
+                  Ground-based receiving arrays optimized for 5.8 GHz microwave conversion. Feeds clean, high-frequency energy back into the terrestrial power grid.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 3: BRIEFING -->
+      <div id="tab-content-explain" class="hidden flex-1 flex flex-col p-4 space-y-4 overflow-y-auto custom-scroll text-xs text-slate-400 font-mono">
+        <div class="space-y-4 leading-relaxed">
+          <div class="border-l-2 border-cyan-500 pl-3 py-1 bg-slate-900/30">
+            <h3 class="text-cyan-400 font-bold text-sm">HELIOS-NET GEOPHYSICAL ANALYSIS</h3>
+            <span class="text-[10px] text-slate-500">Document Classification: SECURED GRID Briefing</span>
+          </div>
+
+          <p class="text-[11px] text-slate-300">
+            Project <span class="text-cyan-400 font-bold">HELIOS-NET</span> functions as an active thermo-optical planetary filter. The system intercepts convective thermal plumes and upwelling longwave radiation, venting a fraction off-world to mitigate greenhouse forcing.
+          </p>
+
+          <div class="space-y-2">
+            <h4 class="text-slate-200 font-bold border-b border-slate-800 pb-1 text-[11px]">1. Atmospheric Transparency Window</h4>
+            <p class="text-[10px] text-slate-500">
+              The Earth's greenhouse gases (CO₂, H₂O, CH₄) absorb most thermal IR emitted by the crust. However, the atmosphere is transparent between <span class="text-cyan-400 font-bold">8.0 - 13.0 μm</span> (the atmospheric infrared window). HELIOS-NET space nodes orbit above this window, intercepting escaping photons.
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-slate-200 font-bold border-b border-slate-800 pb-1 text-[11px]">2. Thermodynamic Equations</h4>
+            <ul class="space-y-2 list-none pl-0 text-[10px] text-slate-500">
+              <li>
+                <strong class="text-slate-300 block mb-0.5">A. Stefan-Boltzmann Emission</strong>
+                Upwelling energy flux $j^*$ radiated from the Earth's surface is calculated as:
+                <div class="text-amber-500 my-1 bg-slate-900 p-1.5 rounded text-center">j* = ε σ T⁴</div>
+                where $\sigma = 5.67 \times 10^{-8} \text{ W/m}^2\text{K}^4$. At $288.15\text{ K}$, this generates $390.1\text{ W/m}^2$ of upwelling energy.
+              </li>
+              <li>
+                <strong class="text-slate-300 block mb-0.5">B. Carnot Thermal Gradient limit</strong>
+                 thermoelectric generators on the LEO nodes operate between hot Earth emission plates and cold space radiator plates. Maximum efficiency is limited by:
+                <div class="text-cyan-400 my-1 bg-slate-900 p-1.5 rounded text-center">η_max = 1 - (Tc / Th)</div>
+                With space temperature $T_c \approx 3\text{ K}$, the theoretical thermodynamic limit is $98.9\%$, enabling efficient solid-state thermoelectric generation.
+              </li>
+            </ul>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="text-slate-200 font-bold border-b border-slate-800 pb-1 text-[11px]">3. Vector Energy Routing</h4>
+            <p class="text-[10px] text-slate-500">
+              By exporting 70% of harvested heat into deep space via Nd:YAG lasers, the system effectively breaks the greenhouse gas energy blanket, lowering the global equilibrium temperature offset. The remaining 30% is beamed to ground rectennas via microwaves, powering the planetary grid.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer status -->
+      <footer class="h-10 border-t border-slate-900 px-4 flex items-center justify-between text-[9px] font-mono text-slate-500 bg-slate-950 shrink-0">
+        <span>ENCRYPTION NODE INDEX: QKD-4.90</span>
+        <span>VER: LTS-8.91</span>
+      </footer>
+    </section>
+  </main>
+
+  <footer class="h-6 border-t border-cyan-950 bg-slate-950 text-slate-600 font-mono text-[9px] px-4 flex items-center justify-between shrink-0">
+    <span>ATMOSPHERIC PHYSICS SIMULATION LOOP RUNNING [30 FPS]</span>
+    <span>RESTRICTED ACCESS SYSTEMS OPERATING DECK</span>
+  </footer>
+
+  <script>
+    // Tab switching setup
+    const tabs = {
+      controls: {
+        btn: document.getElementById('tab-btn-controls'),
+        content: document.getElementById('tab-content-controls')
+      },
+      cost: {
+        btn: document.getElementById('tab-btn-cost'),
+        content: document.getElementById('tab-content-cost')
+      },
+      explain: {
+        btn: document.getElementById('tab-btn-explain'),
+        content: document.getElementById('tab-content-explain')
+      }
+    };
+
+    function setActiveTab(selectedTabKey) {
+      Object.keys(tabs).forEach(key => {
+        const tab = tabs[key];
+        if (key === selectedTabKey) {
+          tab.btn.classList.add('border-cyan-500', 'bg-slate-900/40', 'text-cyan-400');
+          tab.btn.classList.remove('border-transparent', 'text-slate-500');
+          tab.content.classList.remove('hidden');
+          tab.content.classList.add('flex');
+        } else {
+          tab.btn.classList.remove('border-cyan-500', 'bg-slate-900/40', 'text-cyan-400');
+          tab.btn.classList.add('border-transparent', 'text-slate-500');
+          tab.content.classList.add('hidden');
+          tab.content.classList.remove('flex');
+        }
+      });
+    }
+
+    tabs.controls.btn.addEventListener('click', () => setActiveTab('controls'));
+    tabs.cost.btn.addEventListener('click', () => setActiveTab('cost'));
+    tabs.explain.btn.addEventListener('click', () => setActiveTab('explain'));
+
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+      document.getElementById('systime').innerText = timeStr;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // -------------------------------------------------------------
+    // TELEMETRY & PHYSICAL MATH SIMULATION MODEL
+    // -------------------------------------------------------------
+    const sliderDensity = document.getElementById('slider-density');
+    const sliderEfficiency = document.getElementById('slider-efficiency');
+    const sliderSplit = document.getElementById('slider-split');
+
+    const valDensity = document.getElementById('val-density');
+    const valEfficiency = document.getElementById('val-efficiency');
+    const valSplit = document.getElementById('val-split');
+
+    const telSBFlux = document.getElementById('tel-sb-flux');
+    const telSBT = document.getElementById('tel-sb-t');
+    const telCarnot = document.getElementById('tel-carnot');
+    const telCarnotTh = document.getElementById('tel-carnot-th');
+
+    const telPower = document.getElementById('tel-power');
+    const telForcing = document.getElementById('tel-forcing');
+    const telTemp = document.getElementById('tel-temp');
+
+    const telPowerBar = document.getElementById('tel-power-bar');
+    const telForcingDesc = document.getElementById('tel-forcing-desc');
+    const telTempBar = document.getElementById('tel-temp-bar');
+    const telTempDesc = document.getElementById('tel-temp-desc');
+
+    const costT1 = document.getElementById('cost-t1');
+    const costT2 = document.getElementById('cost-t2');
+    const costT3 = document.getElementById('cost-t3');
+    const costCAPEX = document.getElementById('cost-capex');
+    const costOPEX = document.getElementById('cost-opex');
+
+    const logContainer = document.getElementById('security-log');
+
+    // Physical Constants
+    const sigma = 5.670374419e-8; // Stefan-Boltzmann constant
+    const spaceTemp = 3.0; // Tc (K)
+    const baselineTemp = 288.15; // baseline Th (K) - 15°C
+
+    // Model dynamic parameters
+    let currentTempTh = baselineTemp;
+    let paramDensity = parseFloat(sliderDensity.value); // 0 to 10000 active nodes
+    let paramEfficiency = parseFloat(sliderEfficiency.value); // 0% to 100% absorption
+    let paramSplit = parseFloat(sliderSplit.value); // 0% to 100% space lasers
+
+    sliderDensity.addEventListener('input', (e) => {
+      paramDensity = parseFloat(e.target.value);
+      valDensity.innerText = `${paramDensity.toLocaleString()} Nodes`;
+      updateModel();
+    });
+    sliderEfficiency.addEventListener('input', (e) => {
+      paramEfficiency = parseFloat(e.target.value);
+      valEfficiency.innerText = `${paramEfficiency}%`;
+      updateModel();
+    });
+    sliderSplit.addEventListener('input', (e) => {
+      paramSplit = parseFloat(e.target.value);
+      valSplit.innerText = `${paramSplit}% Space Laser`;
+      updateModel();
+    });
+
+    // Main calculations loop
+    function updateModel() {
+      // Calculate dynamic Earth temp based on cooling efficiency
+      const maxCoolingTChange = 4.2; // Max cooling delta at 100% swarm density & absorption
+      const coolingFraction = (paramDensity / 10000) * (paramEfficiency / 100) * (paramSplit / 100);
+      currentTempTh = baselineTemp - maxCoolingTChange * coolingFraction;
+
+      // 1. Stefan-Boltzmann radiant emission flux
+      // j* = ε * σ * Th⁴
+      const flux = sigma * Math.pow(currentTempTh, 4);
+
+      // 2. Carnot Thermal Limit
+      // η = 1 - (Tc / Th)
+      const carnotLimit = 1 - (spaceTemp / currentTempTh);
+
+      // 3. Telemetry Outputs
+      const maxPower = 180000; // GW
+      const interceptedPower = maxPower * (paramDensity / 10000) * (paramEfficiency / 100);
+      const splitLaserFraction = paramSplit / 100;
+      const splitMicrowaveFraction = 1.0 - splitLaserFraction;
+
+      const offWorldCoolingPower = interceptedPower * splitLaserFraction;
+      const terrestrialMicrowavePower = interceptedPower * splitMicrowaveFraction;
+
+      const baselineForcing = 1.85; // W/m²
+      const coolingReduction = (offWorldCoolingPower / maxPower) * 3.35;
+      const microwaveLossForcing = (terrestrialMicrowavePower / maxPower) * 0.45 * (1 - (paramEfficiency / 100) * 0.15);
+
+      const netForcing = baselineForcing - coolingReduction + microwaveLossForcing;
+      const deltaTemp = netForcing * 0.85;
+
+      // Update values
+      telSBFlux.innerText = flux.toFixed(2);
+      telSBT.innerText = currentTempTh.toFixed(2);
+      telCarnot.innerText = (carnotLimit * 100).toFixed(2);
+      telCarnotTh.innerText = currentTempTh.toFixed(1);
+
+      telPower.innerText = interceptedPower.toLocaleString(undefined, {maximumFractionDigits: 1});
+      telForcing.innerText = (netForcing >= 0 ? '+' : '') + netForcing.toFixed(3);
+      telTemp.innerText = (deltaTemp >= 0 ? '+' : '') + deltaTemp.toFixed(2) + '°C';
+
+      // Update display bars
+      telPowerBar.style.width = `${(interceptedPower / maxPower) * 100}%`;
+      
+      // Delta temp bar percentage mapping (maps -2°C to +3°C)
+      const tempPercent = Math.max(0, Math.min(100, ((deltaTemp + 2) / 5) * 100));
+      telTempBar.style.width = `${tempPercent}%`;
+
+      // Telemetry tags update
+      if (netForcing < 0) {
+        telForcing.className = "text-xl font-bold font-mono tracking-tight text-cyan-400 glow-cyan";
+        telForcingDesc.className = "text-[8px] text-cyan-500 mt-1 font-bold";
+        telForcingDesc.innerText = "System Net Coolant state active";
+      } else if (netForcing < 1.0) {
+        telForcing.className = "text-xl font-bold font-mono tracking-tight text-emerald-400 glow-green";
+        telForcingDesc.className = "text-[8px] text-emerald-500 mt-1 font-bold";
+        telForcingDesc.innerText = "Stabilization forcing threshold";
+      } else {
+        telForcing.className = "text-xl font-bold font-mono tracking-tight text-amber-500 glow-amber";
+        telForcingDesc.className = "text-[8px] text-amber-600 mt-1 font-bold";
+        telForcingDesc.innerText = "Radiative forcing accumulation alert";
+      }
+
+      if (deltaTemp < 0) {
+        telTemp.className = "text-xl font-bold font-mono tracking-tight text-cyan-400 glow-cyan";
+        telTempDesc.className = "text-[8px] text-cyan-500 mt-1 font-bold";
+        telTempDesc.innerText = "Active global cooling delta offset";
+      } else if (deltaTemp < 1.2) {
+        telTemp.className = "text-xl font-bold font-mono tracking-tight text-emerald-400 glow-green";
+        telTempDesc.className = "text-[8px] text-emerald-500 mt-1 font-bold";
+        telTempDesc.innerText = "Stabilized atmospheric warming offset";
+      } else {
+        telTemp.className = "text-xl font-bold font-mono tracking-tight text-amber-500 glow-amber";
+        telTempDesc.className = "text-[8px] text-amber-600 mt-1 font-bold";
+        telTempDesc.innerText = "Thermal delta exceeds targets";
+      }
+
+      // Cost calculations Tab 2
+      const capext1 = 18.2 + (paramDensity / 10000) * 120 * splitMicrowaveFraction;
+      const capext2 = 12.5 + (paramDensity / 10000) * 85;
+      const capext3 = 35.0 + (paramDensity / 10000) * 340 * (paramEfficiency / 100);
+      const totalCapex = capext1 + capext2 + capext3;
+      const totalOpex = 2.1 + (paramDensity / 10000) * 18.5;
+
+      costT1.innerText = `$${capext1.toFixed(2)} B`;
+      costT2.innerText = `$${capext2.toFixed(2)} B`;
+      costT3.innerText = `$${capext3.toFixed(2)} B`;
+      costCAPEX.innerText = `$${totalCapex.toFixed(2)} B`;
+      costOPEX.innerText = `$${totalOpex.toFixed(2)} B / yr`;
+    }
+
+    function animateTelemetry() {
+      // Add real-time telemetry noise jitter
+      const noise = (Math.random() - 0.5) * 0.005;
+      const currentFluxVal = sigma * Math.pow(currentTempTh + noise * 10, 4);
+      telSBFlux.innerText = currentFluxVal.toFixed(2);
+    }
+
+    // -------------------------------------------------------------
+    // SECURITY TERMINAL LOG SIMULATOR
+    // -------------------------------------------------------------
+    const standardLogs = [
+      "HELIOS-NET space mesh node heartbeat check: nominal.",
+      "Troposphere Plume scan: convective velocity stabilized at 4.2 m/s.",
+      "Stefan-Boltzmann upwelling flux reading nominal at target window sector.",
+      "Seebeck TEG efficiency check: operating at 14.82% active conversion.",
+      "Dilution Refrigerators status: space radiator surface temperature is 3.8 K.",
+      "QKD communication bus coherence sync: 99.98% nominal.",
+      "Tier 2 aerostats tension threshold audit: nominal at 20.4 km altitude."
+    ];
+
+    function appendLog(text, type = 'info') {
+      const el = document.createElement('div');
+      const time = new Date().toISOString().substring(11, 19);
+      
+      let typeClass = 'text-slate-400';
+      let tag = '[INFO]';
+      
+      if (type === 'warn') {
+        typeClass = 'text-amber-500 font-bold';
+        tag = '[WARN]';
+      } else if (type === 'alert') {
+        typeClass = 'text-red-500 font-bold';
+        tag = '[ALERT]';
+      } else if (type === 'success') {
+        typeClass = 'text-emerald-400 font-bold';
+        tag = '[SUCCESS]';
+      }
+
+      el.className = `leading-relaxed py-0.5 border-b border-slate-900 ${typeClass}`;
+      el.innerHTML = `<span class="text-slate-600">${time}</span> <span class="font-bold">${tag}</span> ${text}`;
+      logContainer.appendChild(el);
+      logContainer.scrollTop = logContainer.scrollHeight;
+      
+      while (logContainer.childElementCount > 30) {
+        logContainer.removeChild(logContainer.firstChild);
+      }
+    }
+
+    function startLogTicker() {
+      setInterval(() => {
+        if (exploitState.phase !== 'idle' || demoActive) return;
+        const msg = standardLogs[Math.floor(Math.random() * standardLogs.length)];
+        appendLog(msg, Math.random() > 0.85 ? 'warn' : 'info');
+      }, 6000);
+    }
+
+    // -------------------------------------------------------------
+    // AUTOMATED INTERACTIVE SYSTEM DEMO MODE
+    // -------------------------------------------------------------
+    let demoActive = false;
+    let demoTimer = 0;
+    let demoStep = -1;
+
+    const demoStepsInfo = [
+      {
+        title: "DEMO STEP 1: ESCAPING THERMAL IR",
+        desc: "Earth's surface emits longwave infrared (orange particles). The thick greenhouse gas layer (dashed white line) traps it, driving positive Net Forcing (+1.85 W/m²).",
+        density: 0,
+        efficiency: 50,
+        split: 50
+      },
+      {
+        title: "DEMO STEP 2: LEO SWARM INTERCEPTION",
+        desc: "Ramping swarm density to 8,000 nodes. Orbiting Dyson micro-nodes intercept escaping thermal IR directly in the 8-13 µm atmospheric window (center gap).",
+        density: 8000,
+        efficiency: 75,
+        split: 50
+      },
+      {
+        title: "DEMO STEP 3: OFF-WORLD THERMAL VENTING",
+        desc: "100% energy exported off-world via solid-state lasers (blue beams). Heat is rejected permanently into cosmic vacuum, driving delta temperature below pre-industrial limits.",
+        density: 8000,
+        efficiency: 85,
+        split: 100
+      },
+      {
+        title: "DEMO STEP 4: TERRESTRIAL POWER GRID FEED",
+        desc: "Adjusting split to 30% space dump, 70% Earth microwave feed. Ground stations capture microwaves (green beams), routing clean electrical energy directly into the power grid.",
+        density: 8000,
+        efficiency: 85,
+        split: 30
+      },
+      {
+        title: "DEMO STEP 5: DE-ORBIT & SELF-HEALING",
+        desc: "Telemetry anomaly detected: a node turns red, activates retro-burn de-orbit (spiraling down), and burns up. A clean replacement node launches from the ground station to rejoin LEO.",
+        density: 8000,
+        efficiency: 85,
+        split: 70
+      }
+    ];
+
+    const btnToggleDemo = document.getElementById('btn-toggle-demo');
+    const demoIndicator = document.getElementById('demo-indicator');
+    const demoBtnText = document.getElementById('demo-btn-text');
+
+    btnToggleDemo.addEventListener('click', () => {
+      if (demoActive) {
+        deactivateDemo();
+      } else {
+        activateDemo();
+      }
+    });
+
+    function activateDemo() {
+      demoActive = true;
+      demoTimer = 0;
+      demoStep = -1;
+      btnToggleDemo.className = "w-full py-2.5 px-4 bg-amber-950 border border-amber-500 text-amber-500 font-mono rounded-lg font-bold shadow-md hover:shadow-lg transition-all tracking-wider flex items-center justify-center space-x-2 demo-pulse";
+      demoBtnText.innerText = "DEACTIVATE AUTO-DEMO";
+      appendLog("DEMO CONTROLLER: Starting automated systems geophysical demonstration sequence.", "success");
+      setActiveTab('controls');
+    }
+
+    function deactivateDemo() {
+      demoActive = false;
+      btnToggleDemo.className = "w-full py-2.5 px-4 bg-cyan-950 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-900 font-mono rounded-lg font-bold shadow-md hover:shadow-lg transition-all tracking-wider flex items-center justify-center space-x-2";
+      demoBtnText.innerText = "ACTIVATE INTERACTIVE DEMO";
+      appendLog("DEMO CONTROLLER: Auto-demo terminated. Telemetry workstation in manual control.", "info");
+    }
+
+    function updateDemo() {
+      if (!demoActive) return;
+      demoTimer++;
+      
+      const stepDuration = 450;
+      const currentStepIndex = Math.floor(demoTimer / stepDuration) % demoStepsInfo.length;
+      
+      if (currentStepIndex !== demoStep) {
+        demoStep = currentStepIndex;
+        const stepInfo = demoStepsInfo[demoStep];
+        
+        sliderDensity.value = stepInfo.density;
+        sliderEfficiency.value = stepInfo.efficiency;
+        sliderSplit.value = stepInfo.split;
+        
+        paramDensity = stepInfo.density;
+        paramEfficiency = stepInfo.efficiency;
+        paramSplit = stepInfo.split;
+        
+        valDensity.innerText = `${paramDensity.toLocaleString()} Nodes`;
+        valEfficiency.innerText = `${paramEfficiency}%`;
+        valSplit.innerText = `${paramSplit}% Space Laser`;
+        
+        updateModel();
+        appendLog(`DEMO CONTROL: Initializing ${stepInfo.title}`, 'info');
+
+        if (demoStep === 4) {
+          triggerExploit();
+        }
+      }
+    }
+
+    function disableDemoOnInteract() {
+      if (demoActive) deactivateDemo();
+    }
+    sliderDensity.addEventListener('mousedown', disableDemoOnInteract);
+    sliderEfficiency.addEventListener('mousedown', disableDemoOnInteract);
+    sliderSplit.addEventListener('mousedown', disableDemoOnInteract);
+
+    // -------------------------------------------------------------
+    // CANVAS 2D ATMOSPHERIC CROSS-SECTION PHYSICS ENGINE
+    // -------------------------------------------------------------
+    const canvas = document.getElementById('viewport-canvas');
+    const ctx = canvas.getContext('2d');
+    const canvasContainer = document.getElementById('canvas-container');
+
+    let width = canvas.width = canvasContainer.clientWidth || 800;
+    let height = canvas.height = canvasContainer.clientHeight || 500;
+
+    function resizeCanvas() {
+      width = canvas.width = canvasContainer.clientWidth || 800;
+      height = canvas.height = canvasContainer.clientHeight || 500;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Simulation heights mapping (2D vertical layout)
+    const getGroundY = () => height - 80;
+    const getAerostatY = () => height - 200;
+    const getGreenhouseY = () => height - 150;
+    const getConstellationY = () => 90;
+
+    // Plumes and Ground array setups
+    const numPlumes = 5;
+    const factories = [];
+    for (let i = 0; i < numPlumes; i++) {
+      factories.push({
+        x: 80 + i * ((width - 160) / (numPlumes - 1)) + (Math.random() - 0.5) * 40,
+        emissionRate: 0.15 + Math.random() * 0.1
+      });
+    }
+
+    // Tier 2: Floating Aerostats
+    const aerostats = [];
+    const numAerostats = 7;
+    for (let i = 0; i < numAerostats; i++) {
+      const targetX = 60 + i * ((width - 120) / (numAerostats - 1));
+      aerostats.push({
+        x: targetX,
+        y: getAerostatY(),
+        baseX: targetX,
+        wobble: Math.random() * Math.PI * 2,
+        flash: 0
+      });
+    }
+
+    // Tier 3: Space Nodes Orbiting horizontally
+    const spaceNodes = [];
+    const numNodes = 14;
+    for (let i = 0; i < numNodes; i++) {
+      spaceNodes.push({
+        id: `H-${100 + i}`,
+        x: i * (width / numNodes),
+        y: getConstellationY(),
+        speed: 0.8 + Math.random() * 0.6,
+        status: 'online', // online, alert, deorbit
+        laserFlash: 0,
+        deorbitVx: 0,
+        deorbitVy: 0,
+        deorbitX: 0,
+        deorbitY: 0,
+        tail: [],
+        size: 8
+      });
+    }
+
+    // Particles system
+    const thermalParticles = []; // Orange upwelling IR
+    const windowParticles = [];  // Cyan/yellow particles in 8-13 μm band passing window
+    const plumeParticles = [];   // Orange/yellow convective plumes
+
+    function spawnThermalParticles() {
+      // Ambient thermal particles rising from entire surface
+      if (Math.random() < 0.3) {
+        thermalParticles.push({
+          x: Math.random() * width,
+          y: getGroundY(),
+          vy: -(0.5 + Math.random() * 0.8),
+          vx: (Math.random() - 0.5) * 0.4,
+          life: 1.0,
+          decay: 0.003 + Math.random() * 0.003
+        });
+      }
+
+      // Wavelength window particles rising through the atmospheric window (represented in center 40% of width)
+      if (Math.random() < 0.25) {
+        const windowMinX = width * 0.3;
+        const windowMaxX = width * 0.7;
+        const wx = windowMinX + Math.random() * (windowMaxX - windowMinX);
+        windowParticles.push({
+          x: wx,
+          y: getGroundY(),
+          vy: -(0.8 + Math.random() * 1.0),
+          vx: (Math.random() - 0.5) * 0.2,
+          life: 1.0,
+          decay: 0.002
+        });
+      }
+
+      // Convective plumes rising from factories
+      factories.forEach(f => {
+        if (Math.random() < f.emissionRate) {
+          plumeParticles.push({
+            x: f.x + (Math.random() - 0.5) * 10,
+            y: getGroundY() - 15,
+            vy: -(0.6 + Math.random() * 1.0),
+            vx: (Math.random() - 0.5) * 0.8,
+            life: 1.0,
+            decay: 0.005
+          });
+        }
+      });
+    }
+
+    // -------------------------------------------------------------
+    // EXPLOIT THREAT SEQUENCE
+    // -------------------------------------------------------------
+    const exploitState = {
+      phase: 'idle',
+      node: null,
+      timer: 0,
+      replacementId: ''
+    };
+
+    function triggerExploit() {
+      if (exploitState.phase !== 'idle') return;
+      
+      const onlineNodes = spaceNodes.filter(n => n.status === 'online');
+      if (onlineNodes.length === 0) return;
+      
+      const targetNode = onlineNodes[Math.floor(Math.random() * onlineNodes.length)];
+      
+      exploitState.phase = 'intrusion';
+      exploitState.node = targetNode;
+      exploitState.timer = 0;
+      targetNode.status = 'alert';
+      
+      document.getElementById('alarm-overlay').classList.remove('hidden');
+      document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-red-500 shadow-red-glow animate-pulse";
+      
+      appendLog(`EXPLOIT WARNING: Anomalous command packet signatures detected on [${targetNode.id}]`, 'alert');
+      appendLog(`Cyber Threat: Active telemetry hijack attempt in Tier 3 Constellation Sector 4`, 'alert');
+    }
+
+    function updateSecuritySimulation() {
+      if (exploitState.phase === 'idle') return;
+      exploitState.timer++;
+
+      if (exploitState.phase === 'intrusion') {
+        if (exploitState.timer > 150) {
+          exploitState.phase = 'autoencode';
+          exploitState.timer = 0;
+          appendLog(`Neural Decoder: Initiating Unsupervised Autoencoder Self-Healing quarantine sequence...`, 'warn');
+        }
+      } 
+      else if (exploitState.phase === 'autoencode') {
+        if (exploitState.timer > 120) {
+          exploitState.phase = 'deorbit';
+          exploitState.timer = 0;
+          
+          exploitState.node.status = 'deorbit';
+          exploitState.node.deorbitX = exploitState.node.x;
+          exploitState.node.deorbitY = exploitState.node.y;
+          exploitState.node.deorbitVx = -1.2; // retro-burn direction
+          exploitState.node.deorbitVy = 0.5;  // start falling
+          
+          appendLog(`CONTAINMENT SYNC: Node [${exploitState.node.id}] isolated from communication bus.`, 'success');
+          appendLog(`DE-ORBIT LOCKED: engaging emergency retro-thrust rocket burn on [${exploitState.node.id}].`, 'warn');
+        }
+      }
+      else if (exploitState.phase === 'deorbit') {
+        // Parabole descent physics
+        exploitState.node.deorbitX += exploitState.node.deorbitVx;
+        exploitState.node.deorbitVy += 0.08; // acceleration down
+        exploitState.node.deorbitY += exploitState.node.deorbitVy;
+
+        exploitState.node.tail.push({
+          x: exploitState.node.deorbitX,
+          y: exploitState.node.deorbitY
+        });
+
+        if (exploitState.node.tail.length > 25) {
+          exploitState.node.tail.shift();
+        }
+
+        const groundY = getGroundY();
+        if (exploitState.node.deorbitY >= groundY) {
+          // Crashing flash
+          exploitState.phase = 'spawning';
+          exploitState.timer = 0;
+          
+          const prevIdNum = parseInt(exploitState.node.id.split('-')[1]);
+          exploitState.replacementId = `H-${prevIdNum + 10}`;
+          
+          // Remove de-orbited node
+          const index = spaceNodes.indexOf(exploitState.node);
+          if (index > -1) {
+            spaceNodes.splice(index, 1);
+          }
+
+          explosionFlash = {
+            active: true,
+            timer: 30,
+            x: exploitState.node.deorbitX,
+            y: groundY
+          };
+
+          appendLog(`ATMOSPHERIC DECOMMISSION: Node [${exploitState.node.id}] vaporized on ground impact.`, 'info');
+          appendLog(`LOGISTICS DISPATCH: Launching replacement booster to restore constellation density.`, 'warn');
+        }
+      }
+      else if (exploitState.phase === 'spawning') {
+        if (exploitState.timer > 100) {
+          exploitState.phase = 'idle';
+          
+          const replacement = {
+            id: exploitState.replacementId,
+            x: 0, // inserts at left
+            y: getConstellationY(),
+            speed: 0.8 + Math.random() * 0.6,
+            status: 'online',
+            laserFlash: 0,
+            deorbitVx: 0,
+            deorbitVy: 0,
+            deorbitX: 0,
+            deorbitY: 0,
+            tail: [],
+            size: 8,
+            colorFlash: 80 // flashes green
+          };
+
+          spaceNodes.push(replacement);
+
+          document.getElementById('alarm-overlay').classList.add('hidden');
+          document.getElementById('status-dot').className = "w-2 h-2 rounded-full bg-emerald-500 shadow-green-glow";
+          appendLog(`INTEGRITY LOCKED: Replacement node [${replacement.id}] joined Constellation. System: 100% NOMINAL.`, 'success');
+        }
+      }
+    }
+
+    let explosionFlash = { active: false, timer: 0, x: 0, y: 0 };
+    let fps = 0;
+    let lastTime = performance.now();
+    let frameCount = 0;
+
+    // -------------------------------------------------------------
+    // RENDER PHYSICS LOOP
+    // -------------------------------------------------------------
+    function drawLoop() {
+      // FPS Tracker
+      frameCount++;
+      const time = performance.now();
+      if (time >= lastTime + 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastTime = time;
+        document.getElementById('fps-counter').innerText = `FPS: ${fps}`;
+      }
+
+      updateDemo();
+      updateSecuritySimulation();
+      animateTelemetry();
+
+      // Clear viewport
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(0, 0, width, height);
+
+      // Render ambient space stars in upper 30% of canvas
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      for (let i = 0; i < 40; i++) {
+        const sx = (i * 97) % width;
+        const sy = (i * 23) % (getConstellationY() + 40);
+        ctx.fillRect(sx, sy, 1, 1);
+      }
+
+      // Draw horizontal background altitude markers
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.03)';
+      ctx.lineWidth = 1;
+      for (let y = 50; y < height; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Spawn rising vectors
+      spawnThermalParticles();
+
+      const groundY = getGroundY();
+      const aerostatY = getAerostatY();
+      const constellationY = getConstellationY();
+      const greenhouseY = getGreenhouseY();
+
+      // ----------------- DRAW ATMOSPHERIC GRADIENTS -----------------
+      // Troposphere temperature envelope gradient
+      const tropoGlow = ctx.createLinearGradient(0, greenhouseY, 0, groundY);
+      tropoGlow.addColorStop(0, 'rgba(6, 182, 212, 0.01)');
+      tropoGlow.addColorStop(0.5, 'rgba(249, 115, 22, 0.04)'); // warming layer
+      tropoGlow.addColorStop(1, 'rgba(249, 115, 22, 0.08)');
+      ctx.fillStyle = tropoGlow;
+      ctx.fillRect(0, greenhouseY, width, groundY - greenhouseY);
+
+      // Stratospheric clean layer gradient
+      const stratoGlow = ctx.createLinearGradient(0, constellationY, 0, greenhouseY);
+      stratoGlow.addColorStop(0, 'rgba(3, 7, 18, 0.95)');
+      stratoGlow.addColorStop(0.8, 'rgba(6, 182, 212, 0.03)');
+      stratoGlow.addColorStop(1, 'rgba(6, 182, 212, 0.01)');
+      ctx.fillStyle = stratoGlow;
+      ctx.fillRect(0, constellationY, width, greenhouseY - constellationY);
+
+      // ----------------- DRAW GREENHOUSE BARRIER & WINDOW -----------------
+      // Green House gas boundary
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      // Draw left segment
+      ctx.moveTo(0, greenhouseY);
+      ctx.lineTo(width * 0.3, greenhouseY);
+      // Draw right segment
+      ctx.moveTo(width * 0.7, greenhouseY);
+      ctx.lineTo(width, greenhouseY);
+      ctx.stroke();
+      ctx.setLineDash([]); // Reset
+
+      // Visual labels for greenhouse gas barrier
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.font = '8px monospace';
+      ctx.fillText("GREENHOUSE GAS CO2/H2O LAYER (HEAT REFLECTION SHIELD)", 15, greenhouseY - 4);
+      ctx.fillText("GREENHOUSE GAS CO2/H2O LAYER (HEAT REFLECTION SHIELD)", width * 0.7 + 10, greenhouseY - 4);
+
+      // Draw the central 8-13 μm Wavelength atmospheric window
+      const winMinX = width * 0.3;
+      const winMaxX = width * 0.7;
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.04)';
+      ctx.fillRect(winMinX, constellationY, winMaxX - winMinX, groundY - constellationY);
+      
+      // Bounding window markers
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(winMinX, greenhouseY - 8);
+      ctx.lineTo(winMinX, greenhouseY + 8);
+      ctx.moveTo(winMaxX, greenhouseY - 8);
+      ctx.lineTo(winMaxX, greenhouseY + 8);
+      ctx.stroke();
+
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.5)';
+      ctx.font = 'bold 8px monospace';
+      ctx.fillText("<-- 8.0 - 13.0 μm LWIR ATMOSPHERIC TRANSPARENCY WINDOW -->", winMinX + (winMaxX - winMinX)/2 - 135, greenhouseY + 3);
+
+      // ----------------- DRAW PLUME PARTICLES -----------------
+      plumeParticles.forEach((p, idx) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+
+        // Check interaction with Tier 2 aerostats
+        aerostats.forEach(a => {
+          const dist = Math.hypot(p.x - a.x, p.y - a.y);
+          if (dist < 18) {
+            p.life = 0; // absorbed
+            a.flash = 1.0;
+          }
+        });
+
+        if (p.life > 0) {
+          ctx.fillStyle = `rgba(249, 115, 22, ${p.life * 0.6})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4 * p.life, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      // Filter out dead plume particles
+      for (let i = plumeParticles.length - 1; i >= 0; i--) {
+        if (plumeParticles[i].life <= 0) plumeParticles.splice(i, 1);
+      }
+
+      // ----------------- DRAW AMBIENT THERMAL PARTICLES -----------------
+      thermalParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+
+        // Bounce back or absorb at greenhouse gas barrier (outside window)
+        const isOutsideWindow = (p.x < winMinX || p.x > winMaxX);
+        if (isOutsideWindow && p.y <= greenhouseY && p.y > greenhouseY - 5) {
+          p.vy = -p.vy * 0.8; // bounce back down
+          p.y = greenhouseY + 2;
+        }
+
+        if (p.life > 0) {
+          ctx.fillStyle = `rgba(239, 68, 68, ${p.life * 0.4})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3 * p.life, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      for (let i = thermalParticles.length - 1; i >= 0; i--) {
+        if (thermalParticles[i].life <= 0) thermalParticles.splice(i, 1);
+      }
+
+      // ----------------- DRAW WINDOW PARTICLES -----------------
+      // These particles pass through greenhouse gas layer to LEO nodes
+      const densityFraction = paramDensity / 10000;
+      const targetNodesCount = Math.floor(densityFraction * spaceNodes.length);
+      const activeNodes = spaceNodes.slice(0, targetNodesCount);
+
+      if (exploitState.node && !activeNodes.includes(exploitState.node)) {
+        activeNodes.push(exploitState.node);
+      }
+
+      windowParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+
+        // Check interception by Tier 3 Space nodes
+        activeNodes.forEach(node => {
+          if (node.status !== 'online') return;
+          const dist = Math.hypot(p.x - node.x, p.y - node.y);
+          if (dist < 26) {
+            p.life = 0; // absorbed
+            node.laserFlash = 1.0;
+          }
+        });
+
+        if (p.life > 0) {
+          ctx.fillStyle = `rgba(6, 182, 212, ${p.life * 0.85})`; // Cyan glowing particles
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3 * p.life, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      for (let i = windowParticles.length - 1; i >= 0; i--) {
+        if (windowParticles[i].life <= 0) windowParticles.splice(i, 1);
+      }
+
+      // ----------------- TIER 2: AEROSTATS (STRATOSPHERE) -----------------
+      // Render link mesh between aerostats
+      ctx.strokeStyle = 'rgba(217, 119, 6, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i < aerostats.length; i++) {
+        if (i === 0) ctx.moveTo(aerostats[i].x, aerostats[i].y);
+        else ctx.lineTo(aerostats[i].x, aerostats[i].y);
+      }
+      ctx.stroke();
+
+      aerostats.forEach((a, idx) => {
+        a.wobble += 0.02;
+        a.y = getAerostatY() + Math.sin(a.wobble) * 6; // wind float sway
+        a.x = a.baseX + Math.cos(a.wobble) * 3;
+
+        // Draw balloon structure
+        ctx.fillStyle = a.flash > 0 ? `rgba(217, 119, 6, ${0.4 + a.flash*0.6})` : 'rgba(217, 119, 6, 0.3)';
+        ctx.beginPath();
+        ctx.arc(a.x, a.y - 8, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#d97706';
+        ctx.stroke();
+
+        // Balloon envelope line
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(a.x, a.y - 16);
+        ctx.stroke();
+
+        // Gondola basket
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(a.x - 2, a.y, 4, 3);
+
+        // Flashing animation decay
+        if (a.flash > 0) a.flash -= 0.04;
+      });
+
+      // Label for Stratosphere mesh
+      ctx.fillStyle = 'rgba(217, 119, 6, 0.6)';
+      ctx.font = 'bold 8px monospace';
+      ctx.fillText("TIER 2 STRATOSPHERIC AEROSTAT THERMAL PLUME MESH (20km Altitude)", 20, getAerostatY() - 25);
+
+      // ----------------- TIER 3: ORBITAL SWARM NODES (LEO) -----------------
+      activeNodes.forEach(node => {
+        if (node.status === 'deorbit') {
+          // Render deorbit parabolic trail
+          if (node.tail.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(node.tail[0].x, node.tail[0].y);
+            node.tail.forEach(pt => ctx.lineTo(pt.x, pt.y));
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+
+          // Render burning deorbiting node
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(node.deorbitX, node.deorbitY, node.size * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Flame sparks
+          if (Math.random() < 0.3) {
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(node.deorbitX + (Math.random()-0.5)*15, node.deorbitY - (Math.random())*15, 2, 2);
+          }
+
+          ctx.fillStyle = '#ef4444';
+          ctx.font = 'bold 8px monospace';
+          ctx.fillText(`DE-ORBIT DISRUPT: ${node.id}`, node.deorbitX + 12, node.deorbitY - 4);
+          ctx.font = '7px monospace';
+          ctx.fillText(`BURN VELOCITY LOCKED`, node.deorbitX + 12, node.deorbitY + 4);
+        } 
+        else {
+          // Move orbit horizontally from left to right
+          node.x += node.speed;
+          if (node.x > width + 20) {
+            node.x = -20; // wrap around
+          }
+
+          // Establish colors
+          let edgeColor = '#06b6d4'; // default cyan
+          let earthFaceColor = 'rgba(217, 119, 6, 0.6)'; // orange LWIR collector
+          
+          if (node.status === 'alert') {
+            edgeColor = '#ef4444'; // Red alert exploit
+            earthFaceColor = 'rgba(239, 68, 68, 0.8)';
+          } else if (node.colorFlash > 0) {
+            node.colorFlash--;
+            edgeColor = '#10b981'; // Green spawn indicator
+          }
+
+          // A. Draw micro-node satellite wings
+          ctx.strokeStyle = edgeColor;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(node.x - 14, node.y);
+          ctx.lineTo(node.x + 14, node.y);
+          ctx.stroke();
+
+          // Left/Right solar wings
+          ctx.fillStyle = edgeColor;
+          ctx.fillRect(node.x - 14, node.y - 3, 4, 6);
+          ctx.fillRect(node.x + 10, node.y - 3, 4, 6);
+
+          // B. Draw hot Earth-facing bottom collector plate (absorber)
+          ctx.fillStyle = earthFaceColor;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.size, 0, Math.PI, false); // bottom semi-circle
+          ctx.fill();
+
+          // C. Draw cold space-facing top radiator sink (radiates upwards)
+          ctx.fillStyle = edgeColor;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.size, Math.PI, Math.PI * 2, false); // top semi-circle
+          ctx.fill();
+
+          // D. Draw Seebeck TEG center separation line
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(node.x - node.size, node.y);
+          ctx.lineTo(node.x + node.size, node.y);
+          ctx.stroke();
+
+          // E. CONTINUOUS ENERGY DUMP LASER BEAMS (Pointing vertically UP into deep space)
+          if (paramSplit > 0) {
+            const pulseFactor = 0.8 + Math.sin(Date.now() * 0.01 + node.x * 0.05) * 0.2;
+            const laserOpacity = (paramSplit / 100) * 0.7 * pulseFactor * (node.colorFlash > 0 ? 0.3 : 1.0);
+            
+            ctx.strokeStyle = `rgba(6, 182, 212, ${laserOpacity})`;
+            ctx.lineWidth = 1.5 + (paramSplit / 100) * 0.5;
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y - node.size);
+            ctx.lineTo(node.x, 0); // straight up
+            ctx.stroke();
+          }
+
+          // F. CONTINUOUS MICROWAVE GRIDS BEAMS (Pointing diagonally DOWN to ground rectennas)
+          if (paramSplit < 100) {
+            // Find closest ground TPV station (rectenna receiver)
+            let closestStation = groundStations[0];
+            let minDist = Infinity;
+            groundStations.forEach(stn => {
+              const d = Math.hypot(node.x - stn.worldX, node.y - groundY);
+              if (d < minDist) {
+                minDist = d;
+                closestStation = stn;
+              }
+            });
+
+            // Pulse animation factor
+            const pulseFactor = 0.85 + Math.sin(Date.now() * 0.008 - node.x * 0.05) * 0.15;
+            const microwaveOpacity = ((100 - paramSplit) / 100) * 0.45 * pulseFactor;
+
+            ctx.strokeStyle = `rgba(16, 185, 129, ${microwaveOpacity})`; // green
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 4]);
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y + node.size);
+            ctx.lineTo(closestStation.worldX, groundY - 10);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset
+
+            if (Math.random() < 0.005) {
+              closestStation.energyPulse = 1.0;
+            }
+          }
+
+          // G. Anomaly HUD Box
+          if (node.status === 'alert') {
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 1;
+            const boxW = 34;
+            const boxH = 26;
+            ctx.strokeRect(node.x - boxW/2, node.y - boxH/2, boxW, boxH);
+            
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 7px monospace';
+            ctx.fillText("ALERT Anomaly", node.x + boxW/2 + 3, node.y - 4);
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+            ctx.font = '6px monospace';
+            ctx.fillText(`ID: ${node.id} | QUARANTINE`, node.x + boxW/2 + 3, node.y + 4);
+          }
+        }
+      });
+
+      // Constellation text label
+      ctx.fillStyle = 'rgba(6, 182, 212, 0.6)';
+      ctx.font = 'bold 8px monospace';
+      ctx.fillText("TIER 3 LEO DYSON SWARM CONSTELLATION NODES (420km Altitude)", 20, getConstellationY() - 30);
+
+      // ----------------- TIER 1: CRUST & GROUND SURFACE -----------------
+      // Draw Earth crust background
+      ctx.fillStyle = '#090d16'; // deep dark navy crust
+      ctx.fillRect(0, groundY, width, 80);
+      
+      // Draw crust top surface boundary line
+      ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, groundY);
+      ctx.lineTo(width, groundY);
+      ctx.stroke();
+
+      // Draw TPV ground stations & factories
+      groundStations.forEach((stn, idx) => {
+        // Position ground station X
+        stn.worldX = 40 + idx * ((width - 80) / (groundStations.length - 1));
+        
+        // Draw factory silhouette
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(stn.worldX - 25, groundY - 14, 15, 14); // factory body
+        ctx.fillRect(stn.worldX - 16, groundY - 24, 4, 10);  // chimney smokestack
+
+        // Draw ground TPV arrays
+        ctx.strokeStyle = '#10b981'; // green border
+        ctx.lineWidth = 1;
+        ctx.strokeRect(stn.worldX + 2, groundY - 6, 14, 6);
+        ctx.fillStyle = stn.energyPulse > 0 ? `rgba(16, 185, 129, ${stn.energyPulse})` : 'rgba(16, 185, 129, 0.15)';
+        ctx.fillRect(stn.worldX + 3, groundY - 5, 12, 4);
+
+        if (stn.energyPulse > 0) stn.energyPulse -= 0.05;
+      });
+
+      // Label for Ground array
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.6)';
+      ctx.font = 'bold 8px monospace';
+      ctx.fillText("TIER 1 LOCALIZED THERMOPHOTOTOVOLTAIC (TPV) GROUND ARRAYS & INDUSTRIAL EMISSIONS SURFACE", 20, groundY + 18);
+
+      // ----------------- DRAW IMPACT EXPLOSION IMPACT -----------------
+      if (explosionFlash.active) {
+        explosionFlash.timer--;
+        ctx.beginPath();
+        ctx.arc(explosionFlash.x, explosionFlash.y, (30 - explosionFlash.timer) * 1.8, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(239, 68, 68, ${explosionFlash.timer / 30})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(explosionFlash.x, explosionFlash.y, (30 - explosionFlash.timer) * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(217, 119, 6, ${explosionFlash.timer / 45})`;
+        ctx.fill();
+
+        if (explosionFlash.timer <= 0) explosionFlash.active = false;
+      }
+
+      // ----------------- DRAW SPAWNING VEHICLE PAYLOAD (Rocket Ascent) -----------------
+      if (exploitState.phase === 'spawning') {
+        const t = exploitState.timer / 100;
+        const currentY = groundY - (groundY - getConstellationY()) * t;
+        const currentX = width * 0.1; // Launches from left ground station sector
+
+        ctx.fillStyle = '#10b981'; // green rocket tip
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Flame thrust trail
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(currentX, groundY);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+      }
+
+      // ----------------- DRAW DEMO HUD BOX OVERLAY -----------------
+      if (demoActive && demoStep >= 0) {
+        const stepInfo = demoStepsInfo[demoStep];
+        ctx.fillStyle = 'rgba(9, 13, 22, 0.95)';
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2;
+        
+        const boxW = 340;
+        const boxH = 95;
+        const boxX = 20;
+        const boxY = 60;
+        
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+        ctx.strokeRect(boxX, boxY, boxW, boxH);
+        
+        ctx.fillStyle = '#06b6d4';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText(stepInfo.title, boxX + 12, boxY + 18);
+        
+        ctx.strokeStyle = 'rgba(6, 182, 212, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(boxX + 12, boxY + 24);
+        ctx.lineTo(boxX + boxW - 12, boxY + 24);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#94a3b8'; // Slate 400
+        ctx.font = '9px monospace';
+        wrapText(ctx, stepInfo.desc, boxX + 12, boxY + 36, boxW - 24, 11);
+      }
+
+      requestAnimationFrame(drawLoop);
+    }
+
+    // Initialize systems
+    setTimeout(() => {
+      appendLog("System Bootstrapping: HELIOS-NET atmospheric schematic visualizer ready.", "info");
+      appendLog("Thermodynamic parameters: Stefan-Boltzmann and Carnot engines locked.", "success");
+      appendLog("Industrial plume convective indices set to 4.2 m/s.", "info");
+      
+      updateModel();
+      startLogTicker();
+      resizeCanvas();
+      requestAnimationFrame(drawLoop);
+    }, 400);
+
+  </script>
+</body>
+</html>
