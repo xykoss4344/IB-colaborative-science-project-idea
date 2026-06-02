@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HELIOS-NET | Operational Command Deck</title>
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Share Tech Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['"Share Tech Mono"', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              bg: '#020617',      // slate-950
+              panel: '#0f172a',   // slate-900
+              border: '#0ea5e9',  // sky-500
+              accent: '#38bdf8',  // sky-400
+              amber: '#f59e0b',   // amber-500
+              green: '#10b981',   // emerald-500
+              red: '#ef4444',     // red-500
+              blue: '#3b82f6',    // blue-500
+              purple: '#c084fc',  // purple-400
+            }
+          },
+          boxShadow: {
+            'cyan-glow': '0 0 20px rgba(14, 165, 233, 0.35)',
+            'amber-glow': '0 0 20px rgba(245, 158, 11, 0.35)',
+            'red-glow': '0 0 20px rgba(239, 68, 68, 0.35)',
+            'green-glow': '0 0 20px rgba(16, 185, 129, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #020617;
+      font-family: 'Share Tech Mono', monospace;
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.15) 50%
+      );
+      background-size: 100% 4px;
+      z-index: 999;
+      opacity: 0.25;
+    }
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(14, 165, 233, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14, 165, 233, 0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(14, 165, 233, 0.3);
+      border-radius: 2px;
+    }
+    .glow-cyan { text-shadow: 0 0 10px rgba(14, 165, 233, 0.6); }
+    .glow-amber { text-shadow: 0 0 10px rgba(245, 158, 11, 0.6); }
+    .glow-green { text-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
+    .glow-red { text-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
+  </style>
+</head>
+<body class="h-full flex flex-col select-none grid-bg">
+  <div class="scanlines"></div>
+
+  <!-- Operational Header -->
+  <header class="h-16 border-b border-sky-950/70 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between z-10 shrink-0 shadow-md">
+    <div class="flex items-center space-x-4">
+      <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-green-glow"></div>
+      <div>
+        <h1 class="text-sm font-bold tracking-widest text-sky-400 glow-cyan">HELIOS-NET OPERATIONS CENTER</h1>
+        <p class="text-[9px] uppercase text-slate-500 tracking-wider font-mono">Singapore Real-Time Decarbonization & Global Heat-Venting Network</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-8 text-xs font-mono text-slate-400">
+      <div>
+        <span class="text-slate-600 block text-[9px] uppercase">Operational State</span>
+        <span class="text-emerald-400 font-bold" id="deck-status">NOMINAL FEED</span>
+      </div>
+      <div>
+        <span class="text-slate-600 block text-[9px] uppercase">Node Constellation</span>
+        <span class="text-sky-400 font-bold">10,000 ACTIVE</span>
+      </div>
+      <div>
+        <a href="index.html" class="px-3 py-1.5 bg-slate-900 border border-sky-950 text-[10px] text-sky-400 hover:bg-sky-950 hover:text-sky-300 rounded font-bold uppercase transition-all">
+          Presenter Mode
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Control Deck Grid Layout -->
+  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    
+    <!-- Left side: 3D Globe Visualizer Canvas -->
+    <div class="flex-1 bg-slate-950/60 border-r border-sky-950/50 flex flex-col relative h-full">
+      <div class="absolute top-4 left-4 z-10 pointer-events-none space-y-1 font-mono">
+        <span class="bg-slate-950/90 border border-sky-500/20 px-2.5 py-1 rounded text-[10px] text-sky-400 font-bold block shadow-md">
+          3D ORTHOGRAPHIC ORBIT SYNCHRONIZER
+        </span>
+        <span class="text-[8px] text-slate-500 block">ROTATIONAL VELOCITY: 0.05 RAD/SEC | ORBIT ALTITUDE: 420KM</span>
+      </div>
+
+      <!-- Globe Canvas -->
+      <div class="flex-1 relative" id="globe-container">
+        <canvas id="globe-canvas" class="absolute inset-0 w-full h-full"></canvas>
+      </div>
+    </div>
+
+    <!-- Right side: Operational Control Panels -->
+    <div class="w-full lg:w-[400px] bg-slate-950/40 flex flex-col shrink-0 h-full overflow-y-auto custom-scroll p-4 space-y-4">
+      
+      <!-- Panel 1: Telemetry Dashboard -->
+      <div class="bg-slate-900/40 border border-sky-950/50 p-4 rounded-xl space-y-3 font-mono">
+        <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider border-b border-sky-950/50 pb-1.5">Live Grid Metrics</h3>
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div class="bg-slate-950 border border-sky-950/50 p-2.5 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Intercepted Energy</span>
+            <span class="text-base font-bold text-sky-400 glow-cyan" id="grid-power">117.8 TW</span>
+          </div>
+          <div class="bg-slate-950 border border-sky-950/50 p-2.5 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Mesh Coherence</span>
+            <span class="text-base font-bold text-emerald-400 glow-green" id="grid-coherence">99.98%</span>
+          </div>
+          <div class="bg-slate-950 border border-sky-950/50 p-2.5 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Singapore Rectennas</span>
+            <span class="text-base font-bold text-emerald-400 glow-green" id="grid-beamed">35.3 TW</span>
+            <span class="text-[7px] text-slate-500 block mt-0.5" id="grid-beamed-pct">(30% Split)</span>
+          </div>
+          <div class="bg-slate-950 border border-sky-950/50 p-2.5 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Deep Space Vent</span>
+            <span class="text-base font-bold text-sky-400 glow-cyan" id="grid-vented">82.5 TW</span>
+            <span class="text-[7px] text-slate-500 block mt-0.5" id="grid-vented-pct">(70% Split)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Interactive Operations Deck -->
+      <div class="bg-slate-900/40 border border-sky-950/50 p-4 rounded-xl space-y-4 font-mono">
+        <h3 class="text-xs font-bold text-sky-400 uppercase tracking-wider border-b border-sky-950/50 pb-1.5">Operational controls</h3>
+        
+        <!-- Power Split Slider -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-400 font-bold">Grid Beaming Split Ratio</span>
+            <span class="text-sky-400 font-bold" id="lbl-split">70% Space Laser</span>
+          </div>
+          <input type="range" id="deck-split" min="0" max="100" value="70" 
+            class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-sky-500 focus:outline-none">
+          <div class="flex justify-between text-[7px] text-slate-500 font-bold">
+            <span>100% SINGAPORE RECTENNAS</span>
+            <span>100% SPACE VENTING</span>
+          </div>
+        </div>
+
+        <!-- Buttons Grid -->
+        <div class="grid grid-cols-1 gap-2 pt-2">
+          <!-- Diagnostics Ping -->
+          <button id="btn-ping" class="py-2 px-3 bg-sky-950/40 border border-sky-500/30 text-sky-400 hover:bg-sky-900/40 font-mono rounded text-xs font-bold tracking-wider transition-all uppercase flex items-center justify-center space-x-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-sky-400" id="ping-indicator"></span>
+            <span>DIAGNOSTICS PING MESH</span>
+          </button>
+          
+          <!-- Rotate QKD Keys -->
+          <button id="btn-qkd" class="py-2 px-3 bg-slate-900 border border-sky-950 text-slate-400 hover:text-slate-300 hover:border-sky-500/50 font-mono rounded text-xs font-bold tracking-wider transition-all uppercase flex items-center justify-center space-x-2">
+            <span>ROTATE QKD SECURITY KEYS</span>
+          </button>
+
+          <!-- Simulate Solar Flare -->
+          <button id="btn-flare" class="py-2 px-3 bg-amber-950/30 border border-amber-500/30 text-amber-500 hover:bg-amber-950/50 font-mono rounded text-xs font-bold tracking-wider transition-all uppercase flex items-center justify-center space-x-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span>SIMULATE COSMIC SOLAR FLARE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel 3: Server Communications Log Console -->
+      <div class="flex-1 flex flex-col bg-slate-950 border border-sky-950/50 rounded-xl overflow-hidden min-h-[160px] max-h-[220px] shadow-lg">
+        <div class="bg-slate-900/60 px-3 py-1.5 border-b border-sky-950/50 text-[8px] font-mono text-slate-500 font-bold uppercase tracking-wider">
+          Node Communications Server Terminal
+        </div>
+        <div id="deck-log" class="flex-1 p-2.5 overflow-y-auto font-mono text-[9px] text-slate-400 space-y-1 custom-scroll">
+          <!-- Telemetry communications stream -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="h-6 border-t border-sky-950/70 bg-slate-950 text-slate-600 font-mono text-[9px] px-4 flex items-center justify-between shrink-0">
+    <span>Singapore Sciences Collaborative Presentation Module</span>
+    <span>Operational Console Deck - Active Telemetry Link</span>
+  </footer>
+
+  <script>
+    // -------------------------------------------------------------
+    // OPERATIONAL TELEMETRY & INPUT ACTIONS
+    // -------------------------------------------------------------
+    const sliderSplit = document.getElementById('deck-split');
+    const lblSplit = document.getElementById('lbl-split');
+    const gridPower = document.getElementById('grid-power');
+    const gridCoherence = document.getElementById('grid-coherence');
+    const gridBeamed = document.getElementById('grid-beamed');
+    const gridBeamedPct = document.getElementById('grid-beamed-pct');
+    const gridVented = document.getElementById('grid-vented');
+    const gridVentedPct = document.getElementById('grid-vented-pct');
+    const deckStatus = document.getElementById('deck-status');
+    const deckLog = document.getElementById('deck-log');
+
+    let paramSplit = parseFloat(sliderSplit.value); // Split percent space laser (0 to 100)
+    let solarFlareActive = false;
+    let solarFlareTimer = 0;
+    
+    // Ping diagnostics variables
+    let pingPulseActive = false;
+    let pingPulseRadius = 0;
+    const maxPingRadius = 300;
+
+    sliderSplit.addEventListener('input', (e) => {
+      paramSplit = parseFloat(e.target.value);
+      lblSplit.innerText = `${paramSplit}% Space Laser`;
+      updateTelemetryValues();
+    });
+
+    function updateTelemetryValues() {
+      const maxPower = 117.8; // TW harvested under 10,000 nodes & quantum lattice
+      const splitLaserFraction = paramSplit / 100;
+      const splitMicrowaveFraction = 1.0 - splitLaserFraction;
+
+      const vented = maxPower * splitLaserFraction;
+      const beamed = maxPower * splitMicrowaveFraction;
+
+      gridVented.innerText = `${vented.toFixed(1)} TW`;
+      gridVentedPct.innerText = `(${paramSplit}% Split)`;
+      gridBeamed.innerText = `${beamed.toFixed(1)} TW`;
+      gridBeamedPct.innerText = `(${(100 - paramSplit)}% Split)`;
+
+      if (solarFlareActive) {
+        const coherence = 92.5 + Math.random() * 2.0;
+        gridCoherence.innerText = `${coherence.toFixed(2)}%`;
+      } else {
+        const coherence = 99.95 + Math.random() * 0.04;
+        gridCoherence.innerText = `${coherence.toFixed(2)}%`;
+      }
+    }
+
+    function appendLog(text, type = 'info') {
+      const el = document.createElement('div');
+      const time = new Date().toISOString().substring(11, 19);
+      let typeClass = 'text-slate-400';
+      let tag = '[INFO]';
+      
+      if (type === 'warn') {
+        typeClass = 'text-amber-500 font-bold';
+        tag = '[WARN]';
+      } else if (type === 'alert') {
+        typeClass = 'text-red-500 font-bold';
+        tag = '[ALERT]';
+      } else if (type === 'success') {
+        typeClass = 'text-emerald-400 font-bold';
+        tag = '[SUCCESS]';
+      }
+
+      el.className = `leading-relaxed py-0.5 border-b border-slate-900/50 ${typeClass}`;
+      el.innerHTML = `<span class="text-slate-600">${time}</span> <span class="font-bold">${tag}</span> ${text}`;
+      deckLog.appendChild(el);
+      deckLog.scrollTop = deckLog.scrollHeight;
+      
+      while (deckLog.childElementCount > 35) {
+        deckLog.removeChild(deckLog.firstChild);
+      }
+    }
+
+    // Diagnostics Ping
+    document.getElementById('btn-ping').addEventListener('click', () => {
+      if (pingPulseActive) return;
+      pingPulseActive = true;
+      pingPulseRadius = 0;
+      
+      document.getElementById('ping-indicator').className = "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping";
+      appendLog("DIAGNOSTICS: Broadcasting global QKD coherence ping to orbital constellation.", "success");
+      
+      setTimeout(() => {
+        document.getElementById('ping-indicator').className = "w-1.5 h-1.5 rounded-full bg-sky-400";
+      }, 2000);
+    });
+
+    // Rotate QKD Keys
+    document.getElementById('btn-qkd').addEventListener('click', () => {
+      appendLog("SECURITY: Rotating Quantum Key Distribution (QKD) master keys.", "warn");
+      setTimeout(() => {
+        const nextHash = Math.random().toString(36).substring(2, 10).toUpperCase();
+        appendLog(`QKD ROTATION: Secure channel synchronized. Next active hash signature: ${nextHash}`, "success");
+      }, 8000);
+    });
+
+    // Simulate Solar Flare
+    document.getElementById('btn-flare').addEventListener('click', () => {
+      if (solarFlareActive) return;
+      solarFlareActive = true;
+      solarFlareTimer = 250;
+      
+      deckStatus.innerText = "COSMIC RADIATION SPIKE";
+      deckStatus.className = "text-amber-500 font-bold glow-amber animate-pulse";
+      
+      appendLog("RADIATION WARNING: Cosmic solar flare activity intercepted by LEO satellites.", "alert");
+      appendLog("DIAGNOSTICS: Spike in satellite radiator temperatures. Inducing QKD connection noise.", "warn");
+    });
+
+    // Idle logs ticker
+    const standardLogs = [
+      "Heartbeat ping to HELIOS-NET constellation: 100% nominal.",
+      "Troposphere Plume convection index: Singapore rectenna grids stabilized at 4.2 m/s.",
+      "Seebeck conversion checking: active cooling venting operating at 14.82% efficiency.",
+      "Singapore Rectenna REC-04 power absorption load synchronized.",
+      "Dilution Refrigerators status: space radiator temperature holds at 3.8 K."
+    ];
+    setInterval(() => {
+      if (solarFlareActive) return;
+      const msg = standardLogs[Math.floor(Math.random() * standardLogs.length)];
+      appendLog(msg, Math.random() > 0.85 ? 'warn' : 'info');
+    }, 6000);
+
+    // -------------------------------------------------------------
+    // 3D ORTHOGRAPHIC WIREFRAME GLOBE PROCEDURAL PHYSICS CANVAS
+    // -------------------------------------------------------------
+    const canvas = document.getElementById('globe-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('globe-container');
+
+    let width = canvas.width = container.clientWidth || 600;
+    let height = canvas.height = container.clientHeight || 500;
+
+    function resizeGlobeCanvas() {
+      width = canvas.width = container.clientWidth || 600;
+      height = canvas.height = container.clientHeight || 500;
+    }
+    window.addEventListener('resize', resizeGlobeCanvas);
+
+    // 3D projections parameters
+    let rotationAngle = 0;
+    const globeRadius = 140;
+
+    // Satellites orbital parameters
+    const satellites = [];
+    const numSatellites = 32;
+    for (let i = 0; i < numSatellites; i++) {
+      satellites.push({
+        angle: (i / numSatellites) * Math.PI * 2,
+        inclination: Math.PI / 6 + (Math.random() - 0.5) * 0.1, // tilt angle of LEO tracks
+        speed: 0.008 + Math.random() * 0.004,
+        size: 4 + Math.random() * 2
+      });
+    }
+
+    // 3D Math coordinate transformation projection helper
+    function project3d(x, y, z) {
+      // Rotate around Y-axis (Globe spin)
+      const cosY = Math.cos(rotationAngle);
+      const sinY = Math.sin(rotationAngle);
+      
+      const rx = x * cosY - z * sinY;
+      const ry = y;
+      const rz = x * sinY + z * cosY;
+
+      // Simple orthographic projection centered on canvas
+      const scale = 1.0; 
+      const projX = width / 2 + rx * scale;
+      const projY = height / 2 + ry * scale;
+      
+      return { x: projX, y: projY, z: rz };
+    }
+
+    function tick() {
+      rotationAngle += 0.005; // rotational spin speed
+      updateTelemetryValues();
+
+      if (solarFlareActive) {
+        solarFlareTimer--;
+        if (solarFlareTimer <= 0) {
+          solarFlareActive = false;
+          deckStatus.innerText = "NOMINAL FEED";
+          deckStatus.className = "text-emerald-400 font-bold";
+          appendLog("COSMIC STABILITY: Solar radiation returns to nominal LEO limits.", "success");
+        }
+      }
+
+      // Drawing loop
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw space star background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      for (let i = 0; i < 30; i++) {
+        const sx = (i * 123) % width;
+        const sy = (i * 59) % height;
+        ctx.fillRect(sx, sy, 1, 1);
+      }
+
+      // Render 3D Wireframe Globe grid circles
+      ctx.lineWidth = 1;
+      
+      // Latitude circles (z-depth sorting)
+      const steps = 8;
+      for (let i = 1; i < steps; i++) {
+        const latAngle = -Math.PI / 2 + (i / steps) * Math.PI;
+        const r = globeRadius * Math.cos(latAngle);
+        const y = globeRadius * Math.sin(latAngle);
+
+        ctx.strokeStyle = 'rgba(14, 165, 233, 0.06)';
+        ctx.beginPath();
+        for (let a = 0; a <= 50; a++) {
+          const theta = (a / 50) * Math.PI * 2;
+          const px = r * Math.cos(theta);
+          const pz = r * Math.sin(theta);
+          const projected = project3d(px, y, pz);
+          if (a === 0) ctx.moveTo(projected.x, projected.y);
+          else ctx.lineTo(projected.x, projected.y);
+        }
+        ctx.stroke();
+      }
+
+      // Longitude lines
+      for (let i = 0; i < steps; i++) {
+        const lonAngle = (i / steps) * Math.PI;
+        ctx.strokeStyle = 'rgba(14, 165, 233, 0.07)';
+        ctx.beginPath();
+        for (let a = 0; a <= 50; a++) {
+          const lat = -Math.PI / 2 + (a / 50) * Math.PI;
+          const px = globeRadius * Math.cos(lat) * Math.cos(lonAngle);
+          const py = globeRadius * Math.sin(lat);
+          const pz = globeRadius * Math.cos(lat) * Math.sin(lonAngle);
+          const projected = project3d(px, py, pz);
+          if (a === 0) ctx.moveTo(projected.x, projected.y);
+          else ctx.lineTo(projected.x, projected.y);
+        }
+        ctx.stroke();
+      }
+
+      // Singapore ground target locator ring on 3D globe (Singapore coordinate relative)
+      const sgLat = 1.35 * Math.PI / 180;
+      const sgLon = 103.8 * Math.PI / 180;
+      const sgX = globeRadius * Math.cos(sgLat) * Math.cos(sgLon);
+      const sgY = globeRadius * Math.sin(sgLat);
+      const sgZ = globeRadius * Math.cos(sgLat) * Math.sin(sgLon);
+      const sgProj = project3d(sgX, sgY, sgZ);
+
+      // Check if Singapore is on the front side (visible facing observer: z > 0)
+      const isSgVisible = sgProj.z > 0;
+
+      if (isSgVisible) {
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(sgProj.x, sgProj.y, 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(sgProj.x, sgProj.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '8px monospace';
+        ctx.fillText("SINGAPORE RECTENNA HUB", sgProj.x + 10, sgProj.y - 4);
+      }
+
+      // Draw diagnostics ping pulses centered on Singapore
+      if (pingPulseActive && isSgVisible) {
+        pingPulseRadius += 3;
+        ctx.strokeStyle = `rgba(16, 185, 129, ${1.0 - pingPulseRadius / maxPingRadius})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(sgProj.x, sgProj.y, pingPulseRadius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (pingPulseRadius >= maxPingRadius) {
+          pingPulseActive = false;
+        }
+      }
+
+      // Draw and orbit Dyson swarm satellites
+      satellites.forEach(sat => {
+        sat.angle += sat.speed;
+        
+        // Calculate 3D sphere coordinate
+        const orbitRadius = globeRadius + 30; // Orbital offset altitude
+        const sx = orbitRadius * Math.cos(sat.angle) * Math.cos(sat.inclination);
+        const sy = orbitRadius * Math.sin(sat.angle) * Math.cos(sat.inclination);
+        const sz = orbitRadius * Math.sin(sat.inclination);
+        
+        const proj = project3d(sx, sy, sz);
+
+        // Render back-side satellites smaller/translucent, front-side solid
+        const isFront = proj.z > 0;
+        ctx.fillStyle = isFront ? '#38bdf8' : 'rgba(56, 189, 248, 0.25)';
+        
+        // Spike node color on cosmic solar flares
+        if (solarFlareActive && isFront) {
+          ctx.fillStyle = '#f59e0b';
+        }
+
+        ctx.beginPath();
+        ctx.arc(proj.x, proj.y, sat.size * (isFront ? 1.0 : 0.6), 0, Math.PI * 2);
+        ctx.fill();
+
+        // Venting / Beaming energy vectors
+        if (isFront && !solarFlareActive) {
+          const opacityModifier = isFront ? 1.0 : 0.2;
+
+          // Space Venting (Blue lasers pointing directly outward)
+          if (paramSplit > 0) {
+            const laserOpacity = (paramSplit / 100) * 0.4 * opacityModifier;
+            ctx.strokeStyle = `rgba(56, 189, 248, ${laserOpacity})`;
+            ctx.lineWidth = 1.2;
+            
+            // Calculate outward direction vector
+            const length = 40;
+            const vx = (sx / orbitRadius) * length;
+            const vy = (sy / orbitRadius) * length;
+            const vz = (sz / orbitRadius) * length;
+            const projLaserEnd = project3d(sx + vx, sy + vy, sz + vz);
+
+            ctx.beginPath();
+            ctx.moveTo(proj.x, proj.y);
+            ctx.lineTo(projLaserEnd.x, projLaserEnd.y);
+            ctx.stroke();
+          }
+
+          // Terrestrial Beaming (Green dashed lines pointing to Singapore)
+          if (paramSplit < 100 && isSgVisible) {
+            const beamOpacity = ((100 - paramSplit) / 100) * 0.25 * opacityModifier;
+            ctx.strokeStyle = `rgba(16, 185, 129, ${beamOpacity})`;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 5]);
+            ctx.beginPath();
+            ctx.moveTo(proj.x, proj.y);
+            ctx.lineTo(sgProj.x, sgProj.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        }
+      });
+
+      requestAnimationFrame(tick);
+    }
+
+    // Launch Deck
+    setTimeout(() => {
+      appendLog("HELIOS-NET Command Link ONLINE. Cryptographic handshakes completed.", "success");
+      appendLog("Telemetry synchronous feeds active. System standing at standard 30/70 split.", "info");
+      resizeGlobeCanvas();
+      requestAnimationFrame(tick);
+    }, 400);
+
+  </script>
+</body>
+</html>
