@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PROJECT HELIOS-NET | City Rebrand Campaign (Phase II)</title>
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Share Tech Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['"Share Tech Mono"', 'monospace'],
+          },
+          colors: {
+            cyber: {
+              bg: '#020617',      // slate-950
+              panel: '#0f172a',   // slate-900
+              border: '#10b981',  // emerald-500
+              accent: '#34d399',  // emerald-400
+              cyan: '#38bdf8',    // sky-400
+              amber: '#f59e0b',   // amber-500
+              red: '#ef4444',     // red-500
+              blue: '#3b82f6',    // blue-500
+            }
+          },
+          boxShadow: {
+            'green-glow': '0 0 20px rgba(16, 185, 129, 0.35)',
+            'cyan-glow': '0 0 20px rgba(14, 165, 233, 0.35)',
+            'red-glow': '0 0 20px rgba(239, 68, 68, 0.35)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #020617;
+      font-family: 'Share Tech Mono', monospace;
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.15) 50%
+      );
+      background-size: 100% 4px;
+      z-index: 999;
+      opacity: 0.25;
+    }
+    .grid-bg {
+      background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.012) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.012) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(16, 185, 129, 0.3);
+      border-radius: 2px;
+    }
+    .glow-green { text-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
+    .glow-cyan { text-shadow: 0 0 10px rgba(14, 165, 233, 0.6); }
+    .glow-red { text-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
+    .glow-amber { text-shadow: 0 0 10px rgba(245, 158, 11, 0.6); }
+  </style>
+</head>
+<body class="h-full flex flex-col select-none grid-bg">
+  <div class="scanlines"></div>
+
+  <!-- Splash Screen (Autoplay Restriction Gate) -->
+  <div id="splash-gate" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center font-mono p-4">
+    <div class="max-w-xl text-center space-y-6">
+      <div class="border border-emerald-500/30 p-8 rounded-xl bg-slate-900/40 relative shadow-green-glow">
+        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-slate-950 px-4 text-xs text-emerald-400 font-bold tracking-widest border border-emerald-500/30 rounded-full">
+          TRANSMISSION PROTOCOL II
+        </div>
+        <h1 class="text-2xl font-bold tracking-widest text-emerald-400 glow-green">PROJECT HELIOS-NET</h1>
+        <p class="text-xs uppercase text-slate-500 tracking-wider mt-2">Singapore Urban Decarbonization Campaign Cinematic</p>
+        
+        <div class="my-6 text-left text-[11px] text-slate-400 leading-relaxed border-t border-slate-800/80 pt-4 space-y-2">
+          <p>This interactive presentation showcases Phase II of the Singapore Rebrand Campaign. The cinematic compiles:
+            <span class="text-emerald-400 font-bold">3D Skyline fly-through telemetry</span>, 
+            <span class="text-cyan-400 font-bold">thermodynamic decoupling grids</span>, and 
+            <span class="text-amber-400 font-bold">real-time synthesized frequency audio</span>.
+          </p>
+          <p class="text-[9px] text-slate-500 italic">Please connect headphones or turn up volume for the synthesized background cinematic soundtrack.</p>
+        </div>
+
+        <button id="btn-start-transmission" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 border border-emerald-300 text-slate-950 font-bold tracking-widest rounded-lg shadow-green-glow hover:shadow-lg transition-all text-xs">
+          START TRANSMISSION
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header Section -->
+  <header class="h-16 border-b border-emerald-950/70 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between z-10 shrink-0">
+    <div class="flex items-center space-x-4">
+      <div class="w-3.5 h-3.5 rounded bg-emerald-500 flex items-center justify-center font-bold text-[8px] text-slate-950 shadow-green-glow">II</div>
+      <div>
+        <h1 class="text-sm font-bold tracking-widest text-emerald-400 glow-green">HELIOS-NET // CITY REBRAND</h1>
+        <p class="text-[9px] uppercase text-slate-500 tracking-wider font-mono">Singapore Phase II Strategic Campaign Launch</p>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Clock / Mode -->
+    <div class="flex items-center space-x-6 text-[10px] font-mono text-slate-400">
+      <div class="hidden md:block">
+        <span class="text-slate-600 block text-[8px] uppercase">Decoupling Factor</span>
+        <span class="text-emerald-400 font-bold" id="hud-decouple-val">0.00%</span>
+      </div>
+      <div>
+        <span class="text-slate-600 block text-[8px] uppercase">Active Matrix</span>
+        <span class="text-emerald-400 font-bold animate-pulse" id="hud-phase-label">PHASE I: CRISIS</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <a href="dashboard.html" target="_blank" class="px-2.5 py-1 bg-slate-900 border border-emerald-950/50 text-[9px] text-cyan-400 hover:bg-slate-800 rounded font-bold uppercase transition-all">
+          Ops Deck
+        </a>
+        <a href="index.html" class="px-2.5 py-1 bg-slate-900 border border-emerald-950/50 text-[9px] text-slate-400 hover:bg-slate-800 rounded font-bold uppercase transition-all">
+          Presenter
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Workspace Layout -->
+  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    
+    <!-- Left Panel: Campaign Copy & Telemetry Readouts -->
+    <div class="w-full lg:w-[350px] bg-slate-950/40 border-r border-emerald-950/50 flex flex-col shrink-0 h-full overflow-y-auto custom-scroll p-4 space-y-4">
+      
+      <!-- Card 1: Phase Mission Explanation -->
+      <div class="bg-slate-900/40 border border-emerald-950/30 p-4 rounded-xl space-y-2.5 font-mono">
+        <span class="text-[9px] text-emerald-400 font-bold block uppercase border-b border-emerald-950/50 pb-1.5" id="phase-card-title">PHASE I: CRUDE COLLAPSE</span>
+        <p class="text-[10.5px] text-slate-400 leading-relaxed" id="phase-card-desc">
+          In 2026, Singapore faces a total stagnation collapse of imports due to synthetic bacterial contamination of global crude oil. The city stands dark, drawing on critical reserves.
+        </p>
+      </div>
+
+      <!-- Card 2: Campaign Telemetry Tracking -->
+      <div class="bg-slate-900/40 border border-emerald-950/30 p-4 rounded-xl space-y-3 font-mono">
+        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-emerald-950/50 pb-1.5">Decarbonization Metrics</h3>
+        <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
+          <div class="bg-slate-950 border border-emerald-950/30 p-2 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Decouple Efficiency</span>
+            <span class="text-xs font-bold text-emerald-400 glow-green" id="tel-decouple">0.0%</span>
+          </div>
+          <div class="bg-slate-950 border border-emerald-950/30 p-2 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">CO2 Vent Rate</span>
+            <span class="text-xs font-bold text-cyan-400 glow-cyan" id="tel-carbon">0.0 MT/Yr</span>
+          </div>
+          <div class="bg-slate-950 border border-emerald-950/30 p-2 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">City Albedo Index</span>
+            <span class="text-xs font-bold text-emerald-400 glow-green" id="tel-albedo">0.12</span>
+          </div>
+          <div class="bg-slate-950 border border-emerald-950/30 p-2 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Net Ambient Temp</span>
+            <span class="text-xs font-bold text-amber-500 glow-amber" id="tel-temp">30.8°C</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: UNSDG Targets Alignments -->
+      <div class="bg-slate-900/40 border border-emerald-950/30 p-4 rounded-xl space-y-3 font-mono">
+        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-emerald-950/50 pb-1.5">UNSDG Defense Profile</h3>
+        <div class="space-y-2.5 text-[10px]">
+          <!-- SDG 7 -->
+          <div class="flex items-center space-x-3 bg-slate-950 border border-emerald-950/20 p-2 rounded">
+            <div class="w-8 h-8 rounded bg-amber-500 flex items-center justify-center font-bold text-xs text-slate-950 shrink-0">7</div>
+            <div class="flex-1 min-w-0">
+              <span class="text-[8px] text-slate-500 block uppercase">AFFORDABLE & CLEAN ENERGY</span>
+              <span class="text-slate-300 block truncate font-bold" id="sdg-7-status">Scavenging solid-state Leg grids</span>
+            </div>
+          </div>
+          <!-- SDG 11 -->
+          <div class="flex items-center space-x-3 bg-slate-950 border border-emerald-950/20 p-2 rounded">
+            <div class="w-8 h-8 rounded bg-orange-600 flex items-center justify-center font-bold text-xs text-white shrink-0">11</div>
+            <div class="flex-1 min-w-0">
+              <span class="text-[8px] text-slate-500 block uppercase">SUSTAINABLE CITIES & COMMUNITIES</span>
+              <span class="text-slate-300 block truncate font-bold" id="sdg-11-status">Decoupled city thermal flow grid</span>
+            </div>
+          </div>
+          <!-- SDG 13 -->
+          <div class="flex items-center space-x-3 bg-slate-950 border border-emerald-950/20 p-2 rounded">
+            <div class="w-8 h-8 rounded bg-emerald-700 flex items-center justify-center font-bold text-xs text-white shrink-0">13</div>
+            <div class="flex-1 min-w-0">
+              <span class="text-[8px] text-slate-500 block uppercase">CLIMATE ACTION</span>
+              <span class="text-slate-300 block truncate font-bold" id="sdg-13-status">Venting 100% of urban infrared force</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Center Panel: 3D Skyline Viewport -->
+    <div class="flex-1 bg-slate-950/60 flex flex-col relative h-full">
+      <div class="absolute top-4 left-4 z-10 pointer-events-none space-y-1 font-mono">
+        <span class="bg-slate-950/90 border border-emerald-500/20 px-2.5 py-1 rounded text-[9px] text-emerald-400 font-bold block shadow-green-glow">
+          PROSTHETIC PERSPECTIVE URBAN FLY-THROUGH
+        </span>
+        <span class="text-[7.5px] text-slate-500 block" id="cam-telemetry">CAMERA X: 0.00 | CAMERA Z: 0.00 | CAMERA Y: 0.00</span>
+      </div>
+
+      <!-- Canvas container -->
+      <div class="flex-1 relative" id="canvas-container">
+        <canvas id="skyline-canvas" class="absolute inset-0 w-full h-full"></canvas>
+      </div>
+
+      <!-- Overlay HUD Alert Messages -->
+      <div id="hud-alert-box" class="absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-red-500/30 px-3 py-1.5 rounded text-red-500 font-bold glow-red animate-pulse flex items-center space-x-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+        <span id="hud-alert-text">GRID COLLAPSE: ENERGY RESERVES AT 14.82%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Timeline Control Bar -->
+  <footer class="h-24 border-t border-emerald-950/70 bg-slate-950 px-6 flex flex-col justify-center space-y-2 shrink-0">
+    <div class="flex items-center justify-between">
+      
+      <!-- Controls -->
+      <div class="flex items-center space-x-3">
+        <!-- Play / Pause Button -->
+        <button id="btn-play" class="w-8 h-8 flex items-center justify-center bg-emerald-950 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-900 rounded font-bold transition-all shadow-green-glow">
+          <svg id="svg-play" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="svg-pause" class="w-3.5 h-3.5 fill-current hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+
+        <!-- Sound Toggle -->
+        <button id="btn-sound" class="w-8 h-8 flex items-center justify-center bg-slate-900 border border-slate-800 text-slate-500 hover:text-slate-300 rounded transition-all">
+          <svg id="svg-sound-off" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM12 4L9.91 6.09 12 8.18V4zm-8 8H2v2h2v-2zm4.43 4.29L12 19.82v-4.18l-4.18-4.18-1.39 1.39zM19 12c0 2.76-2.24 5-5 5v2c3.87 0 7-3.13 7-7s-3.13-7-7-7v2c2.76 0 5 2.24 5 5z"/></svg>
+          <svg id="svg-sound-on" class="w-3.5 h-3.5 fill-current hidden text-emerald-400" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        </button>
+
+        <!-- Speed multiplier -->
+        <button id="btn-speed" class="px-2.5 py-1 bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-bold hover:text-slate-200 rounded font-mono">1.0X</button>
+      </div>
+
+      <!-- Quick phase jumpers -->
+      <div class="flex items-center space-x-1.5 font-mono text-[9px]">
+        <button id="btn-ph1" class="px-3 py-1 border border-red-500/20 bg-red-950/20 text-red-400 rounded hover:bg-red-900/20 transition-all font-bold">1: Collapse</button>
+        <button id="btn-ph2" class="px-3 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">2: Scavenge</button>
+        <button id="btn-ph3" class="px-3 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">3: Synch</button>
+        <button id="btn-ph4" class="px-3 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">4: Rebrand</button>
+      </div>
+    </div>
+
+    <!-- Timeline Scrubber Container -->
+    <div class="flex items-center space-x-3">
+      <span class="text-[9px] font-mono text-slate-500 w-12" id="time-display-current">0.00s</span>
+      <input type="range" id="timeline-scrubber" min="0" max="100" step="0.05" value="0" 
+        class="flex-1 h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none shadow-inner">
+      <span class="text-[9px] font-mono text-slate-500 w-12 text-right">30.00s</span>
+    </div>
+  </footer>
+
+  <script>
+    // -------------------------------------------------------------
+    // PROCEDURAL AUDIO SYNTHESIZER ENGINE (Web Audio API)
+    // -------------------------------------------------------------
+    let audioCtx = null;
+    let masterGain = null;
+    let droneOsc = null;
+    let droneGain = null;
+    let musicOsc1 = null;
+    let musicOsc2 = null;
+    let musicGain = null;
+    let filterNode = null;
+    let synthActive = false;
+
+    function initAudio() {
+      if (audioCtx) return;
+      
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioCtxClass();
+      
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.0, audioCtx.currentTime); // start silent
+      masterGain.connect(audioCtx.destination);
+
+      // Low Drone Synth for Phase 1
+      droneOsc = audioCtx.createOscillator();
+      droneOsc.type = 'sawtooth';
+      droneOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // Low A
+
+      // Modulator LFO for drone filter sweep
+      const lfo = audioCtx.createOscillator();
+      lfo.frequency.setValueAtTime(0.2, audioCtx.currentTime); // 0.2Hz
+      
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.setValueAtTime(200, audioCtx.currentTime);
+
+      filterNode = audioCtx.createBiquadFilter();
+      filterNode.type = 'lowpass';
+      filterNode.Q.setValueAtTime(4.0, audioCtx.currentTime);
+      filterNode.frequency.setValueAtTime(300, audioCtx.currentTime);
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(filterNode.frequency);
+      
+      droneGain = audioCtx.createGain();
+      droneGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+
+      droneOsc.connect(filterNode);
+      filterNode.connect(droneGain);
+      droneGain.connect(masterGain);
+
+      // Warm Music Synth for Phase 4
+      musicOsc1 = audioCtx.createOscillator();
+      musicOsc1.type = 'triangle';
+      musicOsc1.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+
+      musicOsc2 = audioCtx.createOscillator();
+      musicOsc2.type = 'triangle';
+      musicOsc2.frequency.setValueAtTime(277.18, audioCtx.currentTime); // C#4
+
+      musicGain = audioCtx.createGain();
+      musicGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+
+      musicOsc1.connect(musicGain);
+      musicOsc2.connect(musicGain);
+      musicGain.connect(masterGain);
+
+      // Start oscillators
+      droneOsc.start();
+      lfo.start();
+      musicOsc1.start();
+      musicOsc2.start();
+    }
+
+    function updateAudioSynth(progress) {
+      if (!audioCtx || !synthActive) return;
+
+      // Dynamic Audio adjustments based on progress (0 to 100)
+      if (progress < 25) {
+        // Phase 1: Heavy Low Drone, minimal high synth
+        const p1Factor = progress / 25; // 0 to 1
+        droneGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 0.1);
+        musicGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.1);
+        filterNode.frequency.setTargetAtTime(200 + p1Factor * 100, audioCtx.currentTime, 0.2);
+        droneOsc.frequency.setTargetAtTime(55, audioCtx.currentTime, 0.2);
+      } 
+      else if (progress >= 25 && progress < 50) {
+        // Phase 2: Drone shifts upward slightly, building density
+        const p2Factor = (progress - 25) / 25;
+        droneGain.gain.setTargetAtTime(0.08, audioCtx.currentTime, 0.1);
+        musicGain.gain.setTargetAtTime(0.02 * p2Factor, audioCtx.currentTime, 0.2);
+        
+        musicOsc1.frequency.setTargetAtTime(196, audioCtx.currentTime, 0.2); // G3
+        musicOsc2.frequency.setTargetAtTime(246.94, audioCtx.currentTime, 0.2); // B3
+        
+        filterNode.frequency.setTargetAtTime(300 + p2Factor * 200, audioCtx.currentTime, 0.2);
+        droneOsc.frequency.setTargetAtTime(65.41, audioCtx.currentTime, 0.2); // Low C
+      }
+      else if (progress >= 50 && progress < 75) {
+        // Phase 3: High Sweep, synchronization frequency sweep
+        const p3Factor = (progress - 50) / 25;
+        droneGain.gain.setTargetAtTime(0.04, audioCtx.currentTime, 0.1);
+        musicGain.gain.setTargetAtTime(0.05 * p3Factor, audioCtx.currentTime, 0.1);
+        
+        musicOsc1.frequency.setTargetAtTime(220 + p3Factor * 110, audioCtx.currentTime, 0.1); // Sweeping up A3 to E4
+        musicOsc2.frequency.setTargetAtTime(329.63, audioCtx.currentTime, 0.1); // E4
+        
+        filterNode.frequency.setTargetAtTime(500 + p3Factor * 800, audioCtx.currentTime, 0.2);
+      }
+      else {
+        // Phase 4: Sweet warm bright green Solenoid chimes
+        const p4Factor = (progress - 75) / 25;
+        droneGain.gain.setTargetAtTime(0.02, audioCtx.currentTime, 0.1);
+        musicGain.gain.setTargetAtTime(0.12, audioCtx.currentTime, 0.2);
+        
+        musicOsc1.frequency.setTargetAtTime(440, audioCtx.currentTime, 0.3); // A4 (emerald chord)
+        musicOsc2.frequency.setTargetAtTime(554.37, audioCtx.currentTime, 0.3); // C#5
+      }
+    }
+
+    function toggleAudio(state) {
+      if (state) {
+        initAudio();
+        synthActive = true;
+        masterGain.gain.setTargetAtTime(0.3, audioCtx.currentTime, 0.1);
+        document.getElementById('svg-sound-off').classList.add('hidden');
+        document.getElementById('svg-sound-on').classList.remove('hidden');
+      } else {
+        synthActive = false;
+        if (masterGain) {
+          masterGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.1);
+        }
+        document.getElementById('svg-sound-off').classList.remove('hidden');
+        document.getElementById('svg-sound-on').classList.add('hidden');
+      }
+    }
+
+    // Beep Sweep trigger helper
+    function triggerSyncBeep() {
+      if (!audioCtx || !synthActive) return;
+      const beep = audioCtx.createOscillator();
+      const beepGain = audioCtx.createGain();
+      
+      beep.type = 'sine';
+      beep.frequency.setValueAtTime(880, audioCtx.currentTime); // High pitch A5
+      beep.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.15);
+      
+      beepGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      beepGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      
+      beep.connect(beepGain);
+      beepGain.connect(masterGain);
+      beep.start();
+      beep.stop(audioCtx.currentTime + 0.16);
+    }
+
+    // -------------------------------------------------------------
+    // CINEMATIC GRAPHICS & CAMERA SCRAMBLER TIMELINE
+    // -------------------------------------------------------------
+    const canvas = document.getElementById('skyline-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-container');
+
+    let width = canvas.width = container.clientWidth || 800;
+    let height = canvas.height = container.clientHeight || 500;
+
+    function resizeCanvas() {
+      width = canvas.width = container.clientWidth || 800;
+      height = canvas.height = container.clientHeight || 500;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Timeline Variables
+    let playState = false;
+    let currentTime = 0; // seconds, total 30s
+    let speedMult = 1.0;
+    const totalDuration = 30.0;
+
+    const btnPlay = document.getElementById('btn-play');
+    const btnSound = document.getElementById('btn-sound');
+    const btnSpeed = document.getElementById('btn-speed');
+    const scrubber = document.getElementById('timeline-scrubber');
+    const timeDisplay = document.getElementById('time-display-current');
+
+    const svgPlay = document.getElementById('svg-play');
+    const svgPause = document.getElementById('svg-pause');
+
+    // UI Buttons for phases
+    const btnPh1 = document.getElementById('btn-ph1');
+    const btnPh2 = document.getElementById('btn-ph2');
+    const btnPh3 = document.getElementById('btn-ph3');
+    const btnPh4 = document.getElementById('btn-ph4');
+
+    const phBtns = [btnPh1, btnPh2, btnPh3, btnPh4];
+
+    // Info card bindings
+    const phaseLabel = document.getElementById('hud-phase-label');
+    const decoupleVal = document.getElementById('hud-decouple-val');
+    
+    const cardTitle = document.getElementById('phase-card-title');
+    const cardDesc = document.getElementById('phase-card-desc');
+
+    const telDecouple = document.getElementById('tel-decouple');
+    const telCarbon = document.getElementById('tel-carbon');
+    const telAlbedo = document.getElementById('tel-albedo');
+    const telTemp = document.getElementById('tel-temp');
+
+    const sdg7 = document.getElementById('sdg-7-status');
+    const sdg11 = document.getElementById('sdg-11-status');
+    const sdg13 = document.getElementById('sdg-13-status');
+
+    const alertBox = document.getElementById('hud-alert-box');
+    const alertText = document.getElementById('hud-alert-text');
+    const camTelemetry = document.getElementById('cam-telemetry');
+
+    // Timeline configurations
+    const phases = [
+      {
+        name: "PHASE I: CRUDE COLLAPSE",
+        start: 0,
+        end: 7.5,
+        title: "PHASE I: OIL COLLAPSE MATRIX",
+        desc: "Singapore faces total isolation of energy supply lines due to Petroclastic contamination. Downtown coordinates are dark wireframe grids relying on standard emergency reserves. Heavy infrared thermal leakage vents upward.",
+        color: "text-red-500",
+        btn: btnPh1,
+        style: "border-red-500/20 bg-red-950/20 text-red-400"
+      },
+      {
+        name: "PHASE II: GRID SCAVENGING",
+        start: 7.5,
+        end: 15.0,
+        title: "PHASE II: HEAT INTEGRATION",
+        desc: "Deploying high-altitude scannable aerostat mesh cells. These micro-coherence receivers scavenge waste thermal footprints directly from industrial bases, initializing thermodynamic redirection vectors.",
+        color: "text-cyan-400",
+        btn: btnPh2,
+        style: "border-cyan-500/20 bg-cyan-950/20 text-cyan-400"
+      },
+      {
+        name: "PHASE III: ORBITAL SYNCH",
+        start: 15.0,
+        end: 22.5,
+        title: "PHASE III: LASER BEAM SYNCHRONY",
+        desc: "Low-Earth Orbit Dyson satellites align. Singapore Rectenna modules lock focus. Concentric microwave beams lock phase, transferring high-density electric vectors to ground grids while routing raw thermal excess to space.",
+        color: "text-emerald-400",
+        btn: btnPh3,
+        style: "border-emerald-500/20 bg-emerald-950/20 text-emerald-400"
+      },
+      {
+        name: "PHASE IV: GREEN SOLENOID",
+        start: 22.5,
+        end: 30.0,
+        title: "PHASE IV: THERMALLY DECUPLED Hub",
+        desc: "Singapore rebrands as a sustainable, fully carbon-neutral biosphere. Skyline architectures glow with integrated neon solenoid lattices. Decoupled conversion exceeds 99.8% stability.",
+        color: "text-emerald-400",
+        btn: btnPh4,
+        style: "border-emerald-500/20 bg-emerald-950/20 text-emerald-400"
+      }
+    ];
+
+    // Setup 3D wireframe coordinates of Singapore buildings
+    const buildings = [];
+    
+    // Add MBS Towers (3 blocks + Skybridge)
+    buildings.push({
+      type: "block",
+      x: -60, z: 20, w: 20, d: 20, h: 100, // Tower 1
+    });
+    buildings.push({
+      type: "block",
+      x: -30, z: 20, w: 20, d: 20, h: 100, // Tower 2
+    });
+    buildings.push({
+      type: "block",
+      x: 0, z: 20, w: 20, d: 20, h: 100, // Tower 3
+    });
+    buildings.push({
+      type: "bridge", // Skybridge on top
+      x: -65, z: 18, w: 90, d: 24, h: 10, y: -100
+    });
+
+    // Supertrees Cones
+    buildings.push({
+      type: "cone",
+      x: 100, z: -40, r: 25, h: 55
+    });
+    buildings.push({
+      type: "cone",
+      x: 140, z: -10, r: 20, h: 45
+    });
+
+    // Singapore Flyer (Circle in 3D)
+    buildings.push({
+      type: "flyer",
+      x: 130, z: 120, r: 40, h: 90
+    });
+
+    // Random skyscrapers in the background
+    const skyscraperCoords = [
+      {x: -120, z: -100, w: 30, d: 30, h: 150},
+      {x: -160, z: -50, w: 25, d: 25, h: 130},
+      {x: -90, z: -140, w: 35, d: 35, h: 160},
+      {x: 60, z: -120, w: 25, d: 25, h: 120},
+      {x: -40, z: -100, w: 30, d: 30, h: 140},
+      {x: 30, z: -150, w: 35, d: 35, h: 170},
+      {x: -150, z: 80, w: 25, d: 25, h: 110},
+      {x: -100, z: 100, w: 20, d: 20, h: 120},
+      {x: -60, z: -160, w: 20, d: 20, h: 110},
+    ];
+
+    skyscraperCoords.forEach(c => {
+      buildings.push({
+        type: "block",
+        x: c.x, z: c.z, w: c.w, d: c.d, h: c.h
+      });
+    });
+
+    // Satellites shell (used in phase 3-4)
+    const sats = [];
+    for(let i=0; i<15; i++) {
+      sats.push({
+        angle: (i / 15) * Math.PI * 2,
+        inclination: Math.PI / 8 + (Math.random() - 0.5) * 0.15,
+        speed: 0.02 + Math.random()*0.02,
+        altitude: 200
+      });
+    }
+
+    // 3D Perspective Projection Function
+    function project3d(x, y, z, camX, camY, camZ, angle) {
+      // Rotate camera around central Y axis
+      const cosY = Math.cos(angle);
+      const sinY = Math.sin(angle);
+      
+      const rx = x * cosY - z * sinY;
+      const ry = y;
+      const rz = x * sinY + z * cosY;
+
+      // Translate camera
+      const tx = rx - camX;
+      const ty = ry - camY;
+      const tz = rz - camZ;
+
+      const fov = 350; // Camera focal length
+      if (tz + fov <= 5) return null; // Behind camera plane
+      
+      const scale = fov / (fov + tz);
+      const px = width / 2 + tx * scale;
+      const py = height / 2 + ty * scale;
+
+      return { x: px, y: py, z: tz };
+    }
+
+    // Play/Pause actions
+    btnPlay.addEventListener('click', () => {
+      playState = !playState;
+      if (playState) {
+        svgPlay.classList.add('hidden');
+        svgPause.classList.remove('hidden');
+        if (synthActive && audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      } else {
+        svgPlay.classList.remove('hidden');
+        svgPause.classList.add('hidden');
+      }
+    });
+
+    btnSound.addEventListener('click', () => {
+      toggleAudio(!synthActive);
+    });
+
+    // Speed controls
+    btnSpeed.addEventListener('click', () => {
+      if (speedMult === 1.0) {
+        speedMult = 2.0;
+        btnSpeed.innerText = "2.0X";
+      } else if (speedMult === 2.0) {
+        speedMult = 0.5;
+        btnSpeed.innerText = "0.5X";
+      } else {
+        speedMult = 1.0;
+        btnSpeed.innerText = "1.0X";
+      }
+    });
+
+    // Scrubber inputs
+    scrubber.addEventListener('input', (e) => {
+      const pct = parseFloat(e.target.value);
+      currentTime = (pct / 100) * totalDuration;
+      timeDisplay.innerText = `${currentTime.toFixed(2)}s`;
+      updateAudioSynth(pct);
+    });
+
+    // Quick jumpers
+    btnPh1.addEventListener('click', () => jumpToTime(0));
+    btnPh2.addEventListener('click', () => jumpToTime(7.5));
+    btnPh3.addEventListener('click', () => jumpToTime(15.0));
+    btnPh4.addEventListener('click', () => jumpToTime(22.5));
+
+    function jumpToTime(t) {
+      currentTime = t;
+      scrubber.value = (t / totalDuration) * 100;
+      timeDisplay.innerText = `${currentTime.toFixed(2)}s`;
+      updateAudioSynth((t / totalDuration) * 100);
+      if (synthActive) triggerSyncBeep();
+    }
+
+    // Gate closure
+    document.getElementById('btn-start-transmission').addEventListener('click', () => {
+      document.getElementById('splash-gate').classList.add('hidden');
+      playState = true;
+      svgPlay.classList.add('hidden');
+      svgPause.classList.remove('hidden');
+      toggleAudio(true);
+    });
+
+    // Physics constants
+    let frame = 0;
+
+    function renderLoop() {
+      frame++;
+      
+      if (playState) {
+        currentTime += (0.016 * speedMult);
+        if (currentTime >= totalDuration) {
+          currentTime = 0; // loop
+        }
+        scrubber.value = (currentTime / totalDuration) * 100;
+        timeDisplay.innerText = `${currentTime.toFixed(2)}s`;
+      }
+
+      const progressPercent = (currentTime / totalDuration) * 100;
+      updateAudioSynth(progressPercent);
+
+      // Determine active phase parameters
+      let activePhase = phases[0];
+      phases.forEach(p => {
+        if (currentTime >= p.start && currentTime <= p.end) {
+          activePhase = p;
+        }
+      });
+
+      // Update Phase HUD labels & classes
+      phaseLabel.innerText = activePhase.name;
+      cardTitle.innerText = activePhase.title;
+      cardDesc.innerText = activePhase.desc;
+
+      // Update active quick-jump styles
+      phases.forEach(p => {
+        if (p === activePhase) {
+          p.btn.className = `px-3 py-1 border rounded transition-all font-bold ${p.style}`;
+        } else {
+          p.btn.className = `px-3 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold`;
+        }
+      });
+
+      // Math updates based on progress (0 to 100%)
+      let decouple = 0;
+      let carbon = 0;
+      let albedo = 0.12;
+      let temp = 30.8;
+
+      if (progressPercent < 25) {
+        decouple = 0;
+        carbon = 12.8 + Math.random() * 0.4;
+        albedo = 0.12;
+        temp = 30.8 + Math.random() * 0.1;
+        
+        alertBox.className = "absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-red-500/30 px-3 py-1.5 rounded text-red-500 font-bold shadow-red-glow animate-pulse flex items-center space-x-2";
+        alertText.innerText = "GRID SHUTDOWN: ACCUMULATING URBAN HEAT FLUX";
+        
+        sdg7.innerText = "STANDBY: No solid-state thermoelectric output";
+        sdg11.innerText = "CRITICAL: Waste heat dissipation rate low";
+        sdg13.innerText = "DEVIATING: High thermal infrared leakage";
+      } 
+      else if (progressPercent >= 25 && progressPercent < 50) {
+        const factor = (progressPercent - 25) / 25;
+        decouple = factor * 28.5;
+        carbon = 12.8 - factor * 3.5;
+        albedo = 0.12 + factor * 0.08;
+        temp = 30.8 - factor * 1.2;
+
+        alertBox.className = "absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-cyan-500/30 px-3 py-1.5 rounded text-cyan-400 font-bold shadow-cyan-glow flex items-center space-x-2";
+        alertText.innerText = `AEROSTATS ONLINE: CONNECTING LEG COHERENCE (${decouple.toFixed(1)}%)`;
+
+        sdg7.innerText = "INITIALIZING: Connecting solid-state legs";
+        sdg11.innerText = "ACTIVE: Commencing heat scavenging profiles";
+        sdg13.innerText = "ALIGNING: Restructuring carbon vent vectors";
+      }
+      else if (progressPercent >= 50 && progressPercent < 75) {
+        const factor = (progressPercent - 50) / 25;
+        decouple = 28.5 + factor * 50.0;
+        carbon = 9.3 - factor * 6.8;
+        albedo = 0.20 + factor * 0.15;
+        temp = 29.6 - factor * 2.1;
+
+        alertBox.className = "absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-emerald-500/30 px-3 py-1.5 rounded text-emerald-400 font-bold shadow-green-glow flex items-center space-x-2";
+        alertText.innerText = `ORBITAL TRANSMISSION STABLE: SYNCHRONIZING GRID`;
+
+        sdg7.innerText = `SYNCHRONIZED: Harvesting ${decouple.toFixed(1)}% laser split`;
+        sdg11.innerText = "DECOUPLING: Diverting radiation energy to space";
+        sdg13.innerText = "MITIGATED: Direct space radiative cooling active";
+      }
+      else {
+        const factor = (progressPercent - 75) / 25;
+        decouple = 78.5 + factor * 21.3;
+        carbon = 2.5 - factor * 2.5;
+        albedo = 0.35 + factor * 0.13;
+        temp = 27.5 - factor * 1.5;
+
+        alertBox.className = "absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-emerald-500/80 px-3 py-1.5 rounded text-emerald-400 font-bold shadow-green-glow flex items-center space-x-2";
+        alertText.innerText = "100% DECUPLED: ZERO-EMISSIONS BIOSPHERE NOMINAL";
+
+        sdg7.innerText = "NOMINAL: Zero-fuel solid state power matrix";
+        sdg11.innerText = "SUCCESS: Sustainable city thermal dome calibrated";
+        sdg13.innerText = "COMPLETED: Thermal decoupling successfully executed";
+      }
+
+      // Update Text trackers
+      hudDecoupleVal.innerText = `${decouple.toFixed(2)}%`;
+      telDecouple.innerText = `${decouple.toFixed(1)}%`;
+      telCarbon.innerText = `${carbon.toFixed(2)} MT/Yr`;
+      telAlbedo.innerText = albedo.toFixed(2);
+      telTemp.innerText = `${temp.toFixed(1)}°C`;
+
+      // --- GRAPHICS RENDERING LOOP ---
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, width, height);
+
+      // Starfield Background
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      for (let i = 0; i < 40; i++) {
+        const sx = (i * 342) % width;
+        const sy = (i * 91) % height;
+        ctx.fillRect(sx, sy, 1.2, 1.2);
+      }
+
+      // Camera orbital pathing math
+      // Slow rotation over time
+      const timeScale = currentTime * 0.05 + 1.2;
+      const camRadius = 380;
+      const camX = Math.sin(timeScale) * camRadius;
+      const camZ = Math.cos(timeScale) * camRadius;
+      const camY = -120 + Math.sin(timeScale * 0.6) * 45; // fly-through vertical float
+      
+      camTelemetry.innerText = `CAMERA X: ${camX.toFixed(1)} | CAMERA Y: ${camY.toFixed(1)} | CAMERA Z: ${camZ.toFixed(1)}`;
+
+      // Grid helper on ground (glowing grid mesh)
+      ctx.lineWidth = 1;
+      let gridColor = 'rgba(239, 68, 68, 0.04)'; // red crisis
+      if (progressPercent >= 25 && progressPercent < 50) {
+        gridColor = 'rgba(56, 189, 248, 0.06)'; // blue scavenging
+      } else if (progressPercent >= 50) {
+        gridColor = 'rgba(16, 185, 129, 0.12)'; // green decoupled
+      }
+      ctx.strokeStyle = gridColor;
+      
+      const gridCount = 14;
+      const gridSpacing = 40;
+      for (let i = -gridCount; i <= gridCount; i++) {
+        // Horizontal lines
+        let p1 = project3d(i * gridSpacing, 0, -gridCount * gridSpacing, camX, camY, camZ, 0);
+        let p2 = project3d(i * gridSpacing, 0, gridCount * gridSpacing, camX, camY, camZ, 0);
+        if (p1 && p2) {
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+
+        // Vertical lines
+        let p3 = project3d(-gridCount * gridSpacing, 0, i * gridSpacing, camX, camY, camZ, 0);
+        let p4 = project3d(gridCount * gridSpacing, 0, i * gridSpacing, camX, camY, camZ, 0);
+        if (p3 && p4) {
+          ctx.beginPath();
+          ctx.moveTo(p3.x, p3.y);
+          ctx.lineTo(p4.x, p4.y);
+          ctx.stroke();
+        }
+      }
+
+      // Draw active ground rectenna hub concentric rings
+      const sgX = 0, sgZ = 0;
+      const projSg = project3d(sgX, 0, sgZ, camX, camY, camZ, 0);
+      if (projSg && progressPercent >= 50) {
+        const ringRad = (frame % 80) * 1.5;
+        const ringOpacity = 1.0 - (frame % 80) / 80;
+        ctx.strokeStyle = `rgba(16, 185, 129, ${ringOpacity * 0.4})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // project a circular ring in perspective (approximate by drawing an ellipse or circles)
+        ctx.arc(projSg.x, projSg.y, ringRad * (350 / (350 + projSg.z)), 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Dynamic Node Drawing styles
+      let wireColor = 'rgba(226, 232, 240, 0.15)'; // light default
+      let glowFactor = 0;
+      
+      if (progressPercent < 25) {
+        wireColor = 'rgba(100, 116, 139, 0.4)'; // dim gray crisis
+        if (Math.random() > 0.95) wireColor = 'rgba(239, 68, 68, 0.5)'; // flickering crisis red
+      } 
+      else if (progressPercent >= 25 && progressPercent < 50) {
+        const factor = (progressPercent - 25) / 25;
+        wireColor = `rgba(56, 189, 248, ${0.4 + factor * 0.3})`; // transitioning to cyan
+      }
+      else if (progressPercent >= 50 && progressPercent < 75) {
+        const factor = (progressPercent - 50) / 25;
+        wireColor = `rgba(52, 211, 153, ${0.6 + factor * 0.3})`; // emerald-green synchronization
+      }
+      else {
+        wireColor = '#10b981'; // solid neon emerald
+        glowFactor = 1.0;
+      }
+
+      // DRAW BUILDINGS
+      buildings.forEach(b => {
+        // Project corners based on type
+        if (b.type === "block") {
+          // 8 corners of block
+          const h = b.h;
+          const x0 = b.x - b.w/2;
+          const x1 = b.x + b.w/2;
+          const z0 = b.z - b.d/2;
+          const z1 = b.z + b.d/2;
+
+          const pts = [
+            project3d(x0, 0, z0, camX, camY, camZ, 0),
+            project3d(x1, 0, z0, camX, camY, camZ, 0),
+            project3d(x1, 0, z1, camX, camY, camZ, 0),
+            project3d(x0, 0, z1, camX, camY, camZ, 0),
+            project3d(x0, -h, z0, camX, camY, camZ, 0),
+            project3d(x1, -h, z0, camX, camY, camZ, 0),
+            project3d(x1, -h, z1, camX, camY, camZ, 0),
+            project3d(x0, -h, z1, camX, camY, camZ, 0),
+          ];
+
+          // Draw wireframe lines
+          ctx.strokeStyle = wireColor;
+          ctx.lineWidth = glowFactor > 0 ? 1.5 : 1;
+          
+          if (pts.every(p => p !== null)) {
+            // base
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            ctx.lineTo(pts[1].x, pts[1].y);
+            ctx.lineTo(pts[2].x, pts[2].y);
+            ctx.lineTo(pts[3].x, pts[3].y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // top
+            ctx.beginPath();
+            ctx.moveTo(pts[4].x, pts[4].y);
+            ctx.lineTo(pts[5].x, pts[5].y);
+            ctx.lineTo(pts[6].x, pts[6].y);
+            ctx.lineTo(pts[7].x, pts[7].y);
+            ctx.closePath();
+            ctx.stroke();
+
+            // columns
+            for (let i = 0; i < 4; i++) {
+              ctx.beginPath();
+              ctx.moveTo(pts[i].x, pts[i].y);
+              ctx.lineTo(pts[i+4].x, pts[i+4].y);
+              ctx.stroke();
+            }
+          }
+        }
+        else if (b.type === "bridge") {
+          // MBS Skybridge (drawn above columns)
+          const x0 = b.x;
+          const x1 = b.x + b.w;
+          const z0 = b.z;
+          const z1 = b.z + b.d;
+          const y = b.y;
+
+          const pts = [
+            project3d(x0, y, z0, camX, camY, camZ, 0),
+            project3d(x1, y, z0, camX, camY, camZ, 0),
+            project3d(x1, y, z1, camX, camY, camZ, 0),
+            project3d(x0, y, z1, camX, camY, camZ, 0),
+            project3d(x0, y + b.h, z0, camX, camY, camZ, 0),
+            project3d(x1, y + b.h, z0, camX, camY, camZ, 0),
+            project3d(x1, y + b.h, z1, camX, camY, camZ, 0),
+            project3d(x0, y + b.h, z1, camX, camY, camZ, 0),
+          ];
+
+          ctx.strokeStyle = wireColor;
+          ctx.lineWidth = glowFactor > 0 ? 2 : 1;
+          
+          if (pts.every(p => p !== null)) {
+            // Draw skybridge wireframe
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            ctx.lineTo(pts[1].x, pts[1].y);
+            ctx.lineTo(pts[2].x, pts[2].y);
+            ctx.lineTo(pts[3].x, pts[3].y);
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(pts[4].x, pts[4].y);
+            ctx.lineTo(pts[5].x, pts[5].y);
+            ctx.lineTo(pts[6].x, pts[6].y);
+            ctx.lineTo(pts[7].x, pts[7].y);
+            ctx.closePath();
+            ctx.stroke();
+
+            for (let i = 0; i < 4; i++) {
+              ctx.beginPath();
+              ctx.moveTo(pts[i].x, pts[i].y);
+              ctx.lineTo(pts[i+4].x, pts[i+4].y);
+              ctx.stroke();
+            }
+          }
+        }
+        else if (b.type === "cone") {
+          // Gardens by the Bay supertrees: Cone top on central column
+          const basePt = project3d(b.x, 0, b.z, camX, camY, camZ, 0);
+          const topPt = project3d(b.x, -b.h, b.z, camX, camY, camZ, 0);
+
+          ctx.strokeStyle = wireColor;
+          
+          if (basePt && topPt) {
+            // central trunk line
+            ctx.beginPath();
+            ctx.moveTo(basePt.x, basePt.y);
+            ctx.lineTo(topPt.x, topPt.y);
+            ctx.stroke();
+
+            // draw cone rings at top
+            const steps = 12;
+            ctx.beginPath();
+            for (let i = 0; i <= steps; i++) {
+              const theta = (i / steps) * Math.PI * 2;
+              const ringX = b.x + Math.cos(theta) * b.r;
+              const ringZ = b.z + Math.sin(theta) * b.r;
+              const proj = project3d(ringX, -b.h, ringZ, camX, camY, camZ, 0);
+              if (proj) {
+                if (i === 0) ctx.moveTo(proj.x, proj.y);
+                else ctx.lineTo(proj.x, proj.y);
+              }
+            }
+            ctx.stroke();
+
+            // cone slope lines
+            for (let i = 0; i < steps; i += 3) {
+              const theta = (i / steps) * Math.PI * 2;
+              const ringX = b.x + Math.cos(theta) * b.r;
+              const ringZ = b.z + Math.sin(theta) * b.r;
+              const proj = project3d(ringX, -b.h, ringZ, camX, camY, camZ, 0);
+              const branchProj = project3d(b.x, -b.h * 0.4, b.z, camX, camY, camZ, 0);
+              if (proj && branchProj) {
+                ctx.beginPath();
+                ctx.moveTo(proj.x, proj.y);
+                ctx.lineTo(branchProj.x, branchProj.y);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+        else if (b.type === "flyer") {
+          // Singapore Flyer: Large wheel structure
+          const centerPt = project3d(b.x, -b.h, b.z, camX, camY, camZ, 0);
+          const basePt = project3d(b.x, 0, b.z, camX, camY, camZ, 0);
+
+          ctx.strokeStyle = wireColor;
+          
+          if (centerPt && basePt) {
+            // Support leg structures
+            const leftLeg = project3d(b.x - 20, 0, b.z, camX, camY, camZ, 0);
+            const rightLeg = project3d(b.x + 20, 0, b.z, camX, camY, camZ, 0);
+            
+            if (leftLeg && rightLeg) {
+              ctx.beginPath();
+              ctx.moveTo(leftLeg.x, leftLeg.y);
+              ctx.lineTo(centerPt.x, centerPt.y);
+              ctx.lineTo(rightLeg.x, rightLeg.y);
+              ctx.stroke();
+            }
+
+            // Flyer circular wheel
+            const steps = 18;
+            const flyerAngle = frame * 0.005;
+            ctx.beginPath();
+            for (let i = 0; i <= steps; i++) {
+              const theta = (i / steps) * Math.PI * 2;
+              // Circle plane is facing X-Z side tilting
+              const fX = b.x + Math.cos(theta + flyerAngle) * b.r;
+              const fY = -b.h + Math.sin(theta + flyerAngle) * b.r;
+              const proj = project3d(fX, fY, b.z, camX, camY, camZ, 0);
+              if (proj) {
+                if (i === 0) ctx.moveTo(proj.x, proj.y);
+                else ctx.lineTo(proj.x, proj.y);
+              }
+            }
+            ctx.stroke();
+
+            // Spokes
+            for (let i = 0; i < steps; i += 3) {
+              const theta = (i / steps) * Math.PI * 2;
+              const fX = b.x + Math.cos(theta + flyerAngle) * b.r;
+              const fY = -b.h + Math.sin(theta + flyerAngle) * b.r;
+              const proj = project3d(fX, fY, b.z, camX, camY, camZ, 0);
+              if (proj) {
+                ctx.beginPath();
+                ctx.moveTo(centerPt.x, centerPt.y);
+                ctx.lineTo(proj.x, proj.y);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+      });
+
+      // --- PHASE II: HIGH ALTITUDE COHERENCE AEROSTAT MESH ---
+      if (progressPercent >= 25) {
+        // Draw scannable aerostat mesh cells
+        const numCells = 8;
+        const cellRadius = 150;
+        const cells = [];
+        
+        ctx.strokeStyle = progressPercent >= 50 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.25)';
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < numCells; i++) {
+          const theta = (i / numCells) * Math.PI * 2;
+          const cx = Math.cos(theta) * cellRadius;
+          const cz = Math.sin(theta) * cellRadius;
+          const cy = -160; // high above buildings
+
+          const proj = project3d(cx, cy, cz, camX, camY, camZ, 0);
+          if (proj) {
+            cells.push({ x: proj.x, y: proj.y, z: proj.z, rx: cx, rz: cz });
+            
+            // Draw physical floating cell bubble ring
+            ctx.fillStyle = progressPercent >= 50 ? '#10b981' : '#38bdf8';
+            ctx.beginPath();
+            ctx.arc(proj.x, proj.y, 4 * (350 / (350 + proj.z)), 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(proj.x, proj.y, 10 * (350 / (350 + proj.z)), 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+
+        // Draw mesh connection vectors (spider web linkages)
+        ctx.beginPath();
+        for (let i = 0; i < cells.length; i++) {
+          const next = cells[(i + 1) % cells.length];
+          ctx.moveTo(cells[i].x, cells[i].y);
+          ctx.lineTo(next.x, next.y);
+        }
+        ctx.stroke();
+
+        // Connect cells down to top of nearby buildings
+        ctx.strokeStyle = progressPercent >= 50 ? 'rgba(16, 185, 129, 0.08)' : 'rgba(56, 189, 248, 0.12)';
+        cells.forEach(c => {
+          buildings.forEach(b => {
+            if (b.type === "block" && Math.abs(b.x - c.rx) < 120 && Math.abs(b.z - c.rz) < 120) {
+              const bTop = project3d(b.x, -b.h, b.z, camX, camY, camZ, 0);
+              if (bTop) {
+                ctx.beginPath();
+                ctx.moveTo(c.x, c.y);
+                ctx.lineTo(bTop.x, bTop.y);
+                ctx.stroke();
+              }
+            }
+          });
+        });
+      }
+
+      // --- PHASE III & IV: COSMIC ORBITAL SAT LAUNCH & LASER BEAMS ---
+      if (progressPercent >= 50) {
+        // Beaming vectors from LEO satellites
+        sats.forEach(sat => {
+          sat.angle += sat.speed * 0.2;
+          
+          // Satellite 3D coordinate
+          const sX = sat.altitude * Math.cos(sat.angle) * Math.cos(sat.inclination);
+          const sY = -280; // extremely high orbital altitude
+          const sZ = sat.altitude * Math.sin(sat.angle) * Math.cos(sat.inclination);
+
+          const projSat = project3d(sX, sY, sZ, camX, camY, camZ, 0);
+          if (projSat) {
+            // Draw satellite
+            ctx.fillStyle = '#10b981';
+            ctx.beginPath();
+            ctx.arc(projSat.x, projSat.y, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Laser beam from orbit pointing directly to Singapore Rectenna Hub (X=0, Z=0)
+            if (projSg && Math.random() > 0.45) {
+              const laserOpacity = progressPercent >= 75 ? 0.2 : 0.15;
+              ctx.strokeStyle = `rgba(16, 185, 129, ${laserOpacity})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(projSat.x, projSat.y);
+              ctx.lineTo(projSg.x, projSg.y);
+              ctx.stroke();
+            }
+          }
+        });
+      }
+
+      // --- PHASE IV: FLOATING HUD GRAPHICS TEXTS ---
+      if (progressPercent >= 75) {
+        // Draw high-tech 3D titles floating in perspective space above Singapore MBS
+        const titlePt = project3d(-30, -140, 20, camX, camY, camZ, 0);
+        if (titlePt) {
+          ctx.fillStyle = '#10b981';
+          ctx.font = 'bold 9px monospace';
+          ctx.fillText("DECUPLED GREEN SOLENOID ACTIVE", titlePt.x - 70, titlePt.y);
+          ctx.fillText("THERMAL EFFICIENCY: 99.82%", titlePt.x - 55, titlePt.y + 12);
+          
+          ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+          ctx.strokeRect(titlePt.x - 75, titlePt.y - 12, 160, 32);
+        }
+      }
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    // Launch initial render
+    requestAnimationFrame(renderLoop);
+
+  </script>
+</body>
+</html>

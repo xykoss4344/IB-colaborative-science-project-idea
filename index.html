@@ -234,10 +234,16 @@
             <h2 class="text-base font-bold text-sky-400 tracking-widest uppercase">HELIOS-NET COGNITIVE COMMAND CENTER</h2>
             <p class="text-[10px] text-slate-400 font-mono">Singapore Real-Time Decarbonization & Global Heat-Venting Operations Console</p>
           </div>
-          <a href="dashboard.html" target="_blank" class="px-6 py-3 bg-sky-500 hover:bg-sky-400 border border-sky-300 text-slate-950 font-mono rounded-lg font-bold shadow-cyan-glow hover:shadow-lg transition-all tracking-wider text-xs flex items-center space-x-2 z-10 shrink-0 select-none">
-            <span class="w-2.5 h-2.5 rounded-full bg-slate-950 animate-ping"></span>
-            <span>LAUNCH OPERATIONS DASHBOARD</span>
-          </a>
+          <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 z-10 shrink-0 select-none">
+            <a href="dashboard.html" target="_blank" class="px-6 py-3 bg-sky-500 hover:bg-sky-400 border border-sky-300 text-slate-950 font-mono rounded-lg font-bold shadow-cyan-glow hover:shadow-lg transition-all tracking-wider text-xs flex items-center justify-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-950 animate-ping"></span>
+              <span>LAUNCH OPERATIONS DASHBOARD</span>
+            </a>
+            <a href="rebrand.html" target="_blank" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 border border-emerald-300 text-slate-950 font-mono rounded-lg font-bold shadow-green-glow hover:shadow-lg transition-all tracking-wider text-xs flex items-center justify-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-950 animate-pulse"></span>
+              <span>LAUNCH REBRAND PROMO</span>
+            </a>
+          </div>
         </div>
 
         <div class="flex flex-col lg:flex-row gap-6">
@@ -525,8 +531,14 @@
         <!-- Right Panel: Node Schematic & Live Gauge -->
         <div class="flex-1 bg-slate-950/80 border border-sky-950/50 rounded-xl overflow-hidden flex flex-col justify-between min-h-[420px] h-full shadow-lg">
           <div class="p-4 border-b border-sky-950/50 bg-slate-900/30 flex justify-between items-center shrink-0">
-            <span class="text-xs font-mono text-sky-400 font-bold uppercase">Seebeck Satellite Node Schematic</span>
-            <span class="text-[9px] text-slate-500 font-mono">Charge Carrier Drift physics</span>
+            <div class="flex items-center space-x-3">
+              <span class="text-xs font-mono text-sky-400 font-bold uppercase">Seebeck Junction & Band Profile</span>
+              <div class="flex items-center bg-slate-950 border border-sky-950/50 rounded p-0.5 space-x-1">
+                <button id="btn-focus-n" class="px-2 py-0.5 rounded text-[8px] font-bold uppercase bg-sky-950 text-sky-400 border border-sky-500/30 transition-all select-none">N-Type Focus</button>
+                <button id="btn-focus-p" class="px-2 py-0.5 rounded text-[8px] font-bold uppercase text-slate-500 hover:text-slate-300 transition-all select-none">P-Type Focus</button>
+              </div>
+            </div>
+            <span class="text-[9px] text-slate-500 font-mono">Carrier Drift & Band Bending</span>
           </div>
 
           <!-- Canvas Wrapper -->
@@ -1231,6 +1243,23 @@
     }
     window.addEventListener('resize', resizeTegCanvas);
 
+    // Focus type selector buttons and state
+    const btnFocusN = document.getElementById('btn-focus-n');
+    const btnFocusP = document.getElementById('btn-focus-p');
+    let focusType = 'n'; // 'n' or 'p'
+
+    btnFocusN.addEventListener('click', () => {
+      focusType = 'n';
+      btnFocusN.className = "px-2 py-0.5 rounded text-[8px] font-bold uppercase bg-sky-950 text-sky-400 border border-sky-500/30 transition-all select-none";
+      btnFocusP.className = "px-2 py-0.5 rounded text-[8px] font-bold uppercase text-slate-500 hover:text-slate-300 transition-all select-none";
+    });
+
+    btnFocusP.addEventListener('click', () => {
+      focusType = 'p';
+      btnFocusP.className = "px-2 py-0.5 rounded text-[8px] font-bold uppercase bg-sky-950 text-sky-400 border border-sky-500/30 transition-all select-none";
+      btnFocusN.className = "px-2 py-0.5 rounded text-[8px] font-bold uppercase text-slate-500 hover:text-slate-300 transition-all select-none";
+    });
+
     // Charge carrier arrays for particle animation inside semiconductor legs
     const electrons = []; // blue dots (electrons) moving down in n-type
     const holes = [];     // red rings (holes) moving down in p-type
@@ -1288,69 +1317,82 @@
       tegCtx.fillStyle = '#020617';
       tegCtx.fillRect(0, 0, tegWidth, tegHeight);
 
-      // Boundaries configuration of the TEG legs
-      const pad = 40;
-      const legW = (tegWidth - pad * 3) / 2;
-      const legH = tegHeight - pad * 2 - 40;
+      // Width breakdown: 58% Junction, 7% Separator space, 35% Energy Band diagram
+      const junctionW = tegWidth * 0.58;
+      const separatorX = tegWidth * 0.58;
+      const bandX = tegWidth * 0.65;
+      const bandW = tegWidth * 0.30;
 
-      const hotY = tegHeight - pad - 20; // Hot plate is facing Earth (bottom)
-      const coldY = pad;                 // Cold plate is facing deep space (top)
+      // Junction bounds
+      const pad = 25;
+      const legW = (junctionW - pad * 3) / 2;
+      const legH = tegHeight - pad * 2 - 35;
 
-      // N-type coordinates: Left column
+      const hotY = tegHeight - pad - 15; // Hot plate bottom
+      const coldY = pad;                 // Cold plate top
+
       const nX = pad;
-      // P-type coordinates: Right column
       const pX = pad * 2 + legW;
 
+      // Calculate temperatures and flow rate
+      const deltaT = paramTh - paramTc;
+      const flowRate = deltaT <= 0 ? 0 : deltaT * 0.0055;
+
+      // --- DRAW THERMOCOUPLE JUNCTION ---
+
       // Draw Hot Plate (Bottom - glowing red-amber)
-      const hotGradient = tegCtx.createLinearGradient(nX, hotY, pX + legW, hotY + 20);
+      const hotGradient = tegCtx.createLinearGradient(nX, hotY, pX + legW, hotY + 15);
       const heatFactor = Math.max(0, Math.min(1, (paramTh - 250) / 150));
       hotGradient.addColorStop(0, `rgba(245, 158, 11, ${0.3 + heatFactor * 0.6})`);
       hotGradient.addColorStop(1, 'rgba(239, 68, 68, 0.4)');
       tegCtx.fillStyle = hotGradient;
-      tegCtx.fillRect(nX - 10, hotY, legW * 2 + pad + 20, 20);
+      tegCtx.fillRect(nX - 5, hotY, legW * 2 + pad + 10, 15);
       
       tegCtx.strokeStyle = '#f59e0b';
       tegCtx.lineWidth = 1;
-      tegCtx.strokeRect(nX - 10, hotY, legW * 2 + pad + 20, 20);
+      tegCtx.strokeRect(nX - 5, hotY, legW * 2 + pad + 10, 15);
       tegCtx.fillStyle = '#f59e0b';
-      tegCtx.font = 'bold 9px monospace';
-      tegCtx.fillText(`HOT EARTH COLLECTOR INTERFACE (Th = ${paramTh}K)`, nX + 10, hotY + 13);
+      tegCtx.font = 'bold 8px monospace';
+      tegCtx.fillText(`HOT EARTH (Th = ${paramTh}K)`, nX + 5, hotY + 10);
 
       // Draw Cold Plate (Top - deep space cooling fins)
-      const coldGradient = tegCtx.createLinearGradient(nX, coldY, pX + legW, coldY + 20);
+      const coldGradient = tegCtx.createLinearGradient(nX, coldY, pX + legW, coldY + 15);
       const coldFactor = Math.max(0, Math.min(1, (100 - paramTc) / 97));
       coldGradient.addColorStop(0, `rgba(56, 189, 248, ${0.3 + coldFactor * 0.6})`);
       coldGradient.addColorStop(1, 'rgba(59, 130, 246, 0.4)');
       tegCtx.fillStyle = coldGradient;
-      tegCtx.fillRect(nX - 10, coldY, legW * 2 + pad + 20, 20);
+      tegCtx.fillRect(nX - 5, coldY, legW * 2 + pad + 10, 15);
 
       tegCtx.strokeStyle = '#38bdf8';
-      tegCtx.strokeRect(nX - 10, coldY, legW * 2 + pad + 20, 20);
+      tegCtx.strokeRect(nX - 5, coldY, legW * 2 + pad + 10, 15);
       tegCtx.fillStyle = '#38bdf8';
-      tegCtx.fillText(`COLD SPACE RADIATION PLATE (Tc = ${paramTc}K)`, nX + 10, coldY + 13);
+      tegCtx.fillText(`COLD SPACE (Tc = ${paramTc}K)`, nX + 5, coldY + 10);
 
-      // Draw Semiconductor Legs background
-      tegCtx.strokeStyle = 'rgba(14, 165, 233, 0.1)';
+      // Draw Semiconductor Leg backgrounds
+      tegCtx.strokeStyle = 'rgba(14, 165, 233, 0.15)';
       tegCtx.lineWidth = 1.5;
       
       // N-type leg body
-      tegCtx.fillStyle = 'rgba(15, 23, 42, 0.6)';
-      tegCtx.fillRect(nX, coldY + 20, legW, legH);
-      tegCtx.strokeRect(nX, coldY + 20, legW, legH);
+      const isFocusN = (focusType === 'n');
+      tegCtx.fillStyle = isFocusN ? 'rgba(14, 165, 233, 0.08)' : 'rgba(15, 23, 42, 0.5)';
+      tegCtx.fillRect(nX, coldY + 15, legW, legH);
+      tegCtx.strokeStyle = isFocusN ? '#38bdf8' : 'rgba(14, 165, 233, 0.15)';
+      tegCtx.strokeRect(nX, coldY + 15, legW, legH);
       
       // P-type leg body
-      tegCtx.fillRect(pX, coldY + 20, legW, legH);
-      tegCtx.strokeRect(pX, coldY + 20, legW, legH);
+      const isFocusP = (focusType === 'p');
+      tegCtx.fillStyle = isFocusP ? 'rgba(239, 68, 68, 0.08)' : 'rgba(15, 23, 42, 0.5)';
+      tegCtx.fillRect(pX, coldY + 15, legW, legH);
+      tegCtx.strokeStyle = isFocusP ? '#ef4444' : 'rgba(14, 165, 233, 0.15)';
+      tegCtx.strokeRect(pX, coldY + 15, legW, legH);
 
       // Labels inside semiconductor legs
-      tegCtx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-      tegCtx.font = 'bold 11px monospace';
-      tegCtx.fillText("N-TYPE LEG (e-)", nX + legW/2 - 45, coldY + 20 + legH/2);
-      tegCtx.fillText("P-TYPE LEG (h+)", pX + legW/2 - 45, coldY + 20 + legH/2);
-
-      // Compute charge carrier flow velocity proportional to temperature gradient (Delta T)
-      const deltaT = paramTh - paramTc;
-      const flowRate = deltaT <= 0 ? 0 : deltaT * 0.0055;
+      tegCtx.fillStyle = isFocusN ? '#38bdf8' : 'rgba(255, 255, 255, 0.15)';
+      tegCtx.font = 'bold 9px monospace';
+      tegCtx.fillText("N-TYPE LEG (e-)", nX + legW/2 - 40, coldY + 15 + legH/2);
+      
+      tegCtx.fillStyle = isFocusP ? '#ef4444' : 'rgba(255, 255, 255, 0.15)';
+      tegCtx.fillText("P-TYPE LEG (h+)", pX + legW/2 - 40, coldY + 15 + legH/2);
 
       // Draw and animate N-type carriers (Electrons - blue solid dots moving towards the cold space plate)
       electrons.forEach(e => {
@@ -1358,18 +1400,18 @@
           e.ry -= flowRate * 0.015; // flow upward (from hot bottom to cold top)
           if (e.ry < 0) e.ry = 1.0;
         } else {
-          // Thermal equilibrium brownian wiggle
+          // Thermal equilibrium Brownian wiggle
           e.ry += (Math.random() - 0.5) * 0.0015;
           if (e.ry < 0) e.ry = 0.5;
           if (e.ry > 1.0) e.ry = 0.5;
         }
 
         const cx = nX + e.rx * legW;
-        const cy = (coldY + 20) + e.ry * legH;
+        const cy = (coldY + 15) + e.ry * legH;
 
         tegCtx.fillStyle = '#38bdf8'; // sky blue electron
         tegCtx.beginPath();
-        tegCtx.arc(cx, cy, 3, 0, Math.PI * 2);
+        tegCtx.arc(cx, cy, 2.5, 0, Math.PI * 2);
         tegCtx.fill();
       });
 
@@ -1385,14 +1427,157 @@
         }
 
         const cx = pX + h.rx * legW;
-        const cy = (coldY + 20) + h.ry * legH;
+        const cy = (coldY + 15) + h.ry * legH;
 
         tegCtx.strokeStyle = '#ef4444'; // red hollow hole
-        tegCtx.lineWidth = 1.5;
+        tegCtx.lineWidth = 1.2;
         tegCtx.beginPath();
-        tegCtx.arc(cx, cy, 3, 0, Math.PI * 2);
+        tegCtx.arc(cx, cy, 2.5, 0, Math.PI * 2);
         tegCtx.stroke();
       });
+
+      // Draw active charge indicators on plates
+      if (deltaT > 0) {
+        tegCtx.font = 'bold 8px monospace';
+        
+        // N-type cold end gets negative charge (top left)
+        tegCtx.fillStyle = '#ef4444'; // electron accumulation makes it negative, let's draw (-)
+        tegCtx.fillText("[- - -]", nX + legW/2 - 12, coldY + 28);
+        // N-type hot end gets positive charge (bottom left)
+        tegCtx.fillStyle = '#10b981';
+        tegCtx.fillText("[+ + +]", nX + legW/2 - 12, hotY - 8);
+
+        // P-type cold end gets positive charge (top right)
+        tegCtx.fillStyle = '#10b981';
+        tegCtx.fillText("[+ + +]", pX + legW/2 - 12, coldY + 28);
+        // P-type hot end gets negative charge (bottom right)
+        tegCtx.fillStyle = '#ef4444';
+        tegCtx.fillText("[- - -]", pX + legW/2 - 12, hotY - 8);
+      }
+
+      // --- DRAW DYNAMIC ENERGY BAND DIAGRAM ---
+      
+      // Separator line
+      tegCtx.strokeStyle = 'rgba(14, 165, 233, 0.1)';
+      tegCtx.lineWidth = 1;
+      tegCtx.beginPath();
+      tegCtx.moveTo(separatorX + 15, 20);
+      tegCtx.lineTo(separatorX + 15, tegHeight - 20);
+      tegCtx.stroke();
+
+      // Band boundaries and layout
+      const bY = 55;
+      const bH = tegHeight - 110;
+      
+      tegCtx.fillStyle = 'rgba(255,255,255,0.7)';
+      tegCtx.font = 'bold 9px monospace';
+      const label = focusType === 'n' ? "N-TYPE ENERGY BANDS" : "P-TYPE ENERGY BANDS";
+      tegCtx.fillText(label, bandX, 35);
+
+      // Band bending math:
+      // The temperature gradient slopes the bands.
+      // For N-type: cold top end shifts UPWARD (bands increase in electron energy).
+      // For P-type: cold top end shifts DOWNWARD (bands decrease in electron energy).
+      // If deltaT = 0, tilt = 0 (perfectly flat).
+      const maxTilt = 18;
+      const normalizedDelta = Math.min(1, deltaT / 250);
+      const tilt = maxTilt * normalizedDelta * (focusType === 'n' ? -1 : 1); // in pixels
+
+      // Node coordinates for bands:
+      // X-axis represents distance from Cold End (left, X = bandX) to Hot End (right, X = bandX + bandW).
+      const xCold = bandX;
+      const xHot = bandX + bandW;
+      
+      // Conduction Band (Ec)
+      const ecColdY = bY + 10 - tilt;
+      const ecHotY = bY + 10 + tilt;
+      
+      // Valence Band (Ev)
+      const evColdY = bY + bH - 10 - tilt;
+      const evHotY = bY + bH - 10 + tilt;
+
+      // Draw band gap shading
+      tegCtx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+      tegCtx.beginPath();
+      tegCtx.moveTo(xCold, ecColdY);
+      tegCtx.lineTo(xHot, ecHotY);
+      tegCtx.lineTo(xHot, evHotY);
+      tegCtx.lineTo(xCold, evColdY);
+      tegCtx.closePath();
+      tegCtx.fill();
+
+      // Draw Ec line (Conduction Band Edge)
+      tegCtx.strokeStyle = '#38bdf8';
+      tegCtx.lineWidth = 2;
+      tegCtx.beginPath();
+      tegCtx.moveTo(xCold, ecColdY);
+      tegCtx.lineTo(xHot, ecHotY);
+      tegCtx.stroke();
+      tegCtx.fillStyle = '#38bdf8';
+      tegCtx.font = '8px monospace';
+      tegCtx.fillText("Ec (Conduction Band)", xHot - 85, ecHotY - 6);
+
+      // Draw Ev line (Valence Band Edge)
+      tegCtx.strokeStyle = '#ef4444';
+      tegCtx.beginPath();
+      tegCtx.moveTo(xCold, evColdY);
+      tegCtx.lineTo(xHot, evHotY);
+      tegCtx.stroke();
+      tegCtx.fillStyle = '#ef4444';
+      tegCtx.fillText("Ev (Valence Band)", xHot - 85, evHotY + 10);
+
+      // Draw Fermi Level (Ef) - dashed line
+      const efOffset = focusType === 'n' ? 20 : bH - 30;
+      const efColdY = bY + efOffset - tilt;
+      const efHotY = bY + efOffset + tilt;
+
+      tegCtx.strokeStyle = '#f59e0b';
+      tegCtx.lineWidth = 1;
+      tegCtx.setLineDash([3, 3]);
+      tegCtx.beginPath();
+      tegCtx.moveTo(xCold, efColdY);
+      tegCtx.lineTo(xHot, efHotY);
+      tegCtx.stroke();
+      tegCtx.setLineDash([]);
+      tegCtx.fillStyle = '#f59e0b';
+      tegCtx.fillText("Ef (Fermi Level)", xCold + 5, efColdY - 5);
+
+      // Draw Donor/Acceptor impurities states
+      tegCtx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      tegCtx.lineWidth = 1;
+      tegCtx.setLineDash([1, 4]);
+      
+      const impOffset = focusType === 'n' ? 14 : bH - 22;
+      const impColdY = bY + impOffset - tilt;
+      const impHotY = bY + impOffset + tilt;
+      
+      tegCtx.beginPath();
+      tegCtx.moveTo(xCold, impColdY);
+      tegCtx.lineTo(xHot, impHotY);
+      tegCtx.stroke();
+      tegCtx.setLineDash([]);
+      
+      tegCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      tegCtx.fillText(focusType === 'n' ? "Ed (Donors)" : "Ea (Acceptors)", xCold + 5, impColdY + 8);
+
+      // Labels for Cold/Hot sides at the bottom
+      tegCtx.fillStyle = '#64748b';
+      tegCtx.font = '7px monospace';
+      tegCtx.fillText("COLD END (Space)", xCold, bY + bH + 8);
+      tegCtx.fillText("HOT END (Earth)", xHot - 65, bY + bH + 8);
+
+      // Thermodynamic equilibrium note
+      if (deltaT <= 0) {
+        tegCtx.fillStyle = 'rgba(239, 68, 68, 0.8)';
+        tegCtx.font = 'bold 8px monospace';
+        tegCtx.fillText("EQUILIBRIUM: BANDS FLAT", bandX + 10, bY + bH/2);
+      } else {
+        // Draw small charge arrows
+        tegCtx.fillStyle = '#10b981';
+        tegCtx.fillText(focusType === 'n' ? "Electron Drift ->" : "Hole Drift ->", bandX + 15, bY + bH/2 - 10);
+        tegCtx.fillStyle = '#ef4444';
+        tegCtx.fillText("<- Electric Field Force", bandX + 15, bY + bH/2 + 5);
+      }
     }
 
     // -------------------------------------------------------------
