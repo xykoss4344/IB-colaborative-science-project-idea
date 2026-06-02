@@ -41,7 +41,6 @@
       background-color: #020617;
       font-family: 'Share Tech Mono', monospace;
       color: #e2e8f0;
-      overflow: hidden;
     }
     .scanlines {
       position: fixed;
@@ -53,7 +52,7 @@
       );
       background-size: 100% 4px;
       z-index: 999;
-      opacity: 0.25;
+      opacity: 0.20;
     }
     .grid-bg {
       background-image: 
@@ -62,22 +61,30 @@
       background-size: 40px 40px;
     }
     .custom-scroll::-webkit-scrollbar {
-      width: 4px;
+      width: 6px;
     }
     .custom-scroll::-webkit-scrollbar-track {
       background: rgba(15, 23, 42, 0.6);
     }
     .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(16, 185, 129, 0.3);
-      border-radius: 2px;
+      background: rgba(16, 185, 129, 0.35);
+      border-radius: 3px;
     }
     .glow-green { text-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
     .glow-cyan { text-shadow: 0 0 10px rgba(14, 165, 233, 0.6); }
     .glow-red { text-shadow: 0 0 10px rgba(239, 68, 68, 0.6); }
     .glow-amber { text-shadow: 0 0 10px rgba(245, 158, 11, 0.6); }
+    
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .bounce-arrow {
+      animation: bounce 2s infinite;
+    }
   </style>
 </head>
-<body class="h-screen flex flex-col select-none grid-bg">
+<body class="min-h-screen flex flex-col select-none grid-bg overflow-x-hidden overflow-y-auto custom-scroll">
   <div class="scanlines"></div>
 
   <!-- Splash Screen (Autoplay Restriction Gate) -->
@@ -91,10 +98,10 @@
         <p class="text-xs uppercase text-slate-500 tracking-wider mt-2">Singapore Urban Decarbonization Campaign Cinematic</p>
         
         <div class="my-6 text-left text-[11px] text-slate-400 leading-relaxed border-t border-slate-800/80 pt-4 space-y-2">
-          <p>This interactive presentation showcases Phase II of the Singapore Rebrand Campaign. The cinematic compiles:
+          <p>This interactive page outlines Phase II of the Singapore Rebrand Campaign. The presentation contains:
             <span class="text-emerald-400 font-bold">3D Skyline fly-through telemetry</span>, 
-            <span class="text-cyan-400 font-bold">thermodynamic decoupling grids</span>, and 
-            <span class="text-amber-400 font-bold">real-time synthesized frequency audio</span>.
+            <span class="text-cyan-400 font-bold">decoupling grid calculations</span>, and 
+            <span class="text-amber-400 font-bold">real-time synthesized soundtrack audio</span>.
           </p>
           <p class="text-[9px] text-slate-500 italic">Please connect headphones or turn up volume for the synthesized background cinematic soundtrack.</p>
         </div>
@@ -106,169 +113,330 @@
     </div>
   </div>
 
-  <!-- Header Section -->
-  <header class="h-16 border-b border-emerald-950/70 bg-slate-950/80 backdrop-blur-md px-6 flex items-center justify-between z-10 shrink-0">
-    <div class="flex items-center space-x-4">
-      <div class="w-3.5 h-3.5 rounded bg-emerald-500 flex items-center justify-center font-bold text-[8px] text-slate-950 shadow-green-glow">II</div>
-      <div>
-        <h1 class="text-sm font-bold tracking-widest text-emerald-400 glow-green">HELIOS-NET // CITY REBRAND</h1>
-        <p class="text-[9px] uppercase text-slate-500 tracking-wider font-mono">Singapore Phase II Strategic Campaign Launch</p>
-      </div>
+  <!-- Top Hero Header Section (Launch Video Container) -->
+  <section class="relative w-full h-[70vh] border-b border-emerald-950/70 bg-slate-950/90 overflow-hidden flex flex-col justify-between shrink-0 shadow-lg z-10 select-none">
+    
+    <!-- 3D Canvas Background -->
+    <div class="absolute inset-0 z-0" id="canvas-container">
+      <canvas id="skyline-canvas" class="absolute inset-0 w-full h-full"></canvas>
     </div>
 
-    <!-- Live Telemetry Clock / Mode -->
-    <div class="flex items-center space-x-6 text-[10px] font-mono text-slate-400">
-      <div class="hidden md:block">
-        <span class="text-slate-600 block text-[8px] uppercase">Decoupling Factor</span>
-        <span class="text-emerald-400 font-bold" id="hud-decouple-val">0.00%</span>
+    <!-- HUD Overlay Header (Top) -->
+    <div class="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-slate-950/90 to-transparent px-6 flex items-center justify-between pointer-events-auto z-10">
+      <div class="flex items-center space-x-3">
+        <div class="w-3.5 h-3.5 rounded bg-emerald-500 flex items-center justify-center font-bold text-[8px] text-slate-950 shadow-green-glow">II</div>
+        <div>
+          <h1 class="text-xs font-bold tracking-widest text-emerald-400 glow-green">HELIOS-NET // CITY REBRAND</h1>
+          <p class="text-[8.5px] uppercase text-slate-500 tracking-wider font-mono">Singapore Phase II Strategic Campaign Launch</p>
+        </div>
       </div>
-      <div>
-        <span class="text-slate-600 block text-[8px] uppercase">Active Matrix</span>
-        <span class="text-emerald-400 font-bold animate-pulse" id="hud-phase-label">PHASE I: CRISIS</span>
-      </div>
-      <div class="flex items-center space-x-2">
-        <a href="dashboard.html" target="_blank" class="px-2.5 py-1 bg-slate-900 border border-emerald-950/50 text-[9px] text-cyan-400 hover:bg-slate-800 rounded font-bold uppercase transition-all">
+
+      <!-- Navigation shortcuts -->
+      <div class="flex items-center space-x-2 text-[9px] font-mono">
+        <a href="dashboard.html" target="_blank" class="px-2.5 py-1 bg-slate-950/80 border border-emerald-950/50 text-cyan-400 hover:bg-slate-900 rounded font-bold uppercase transition-all shadow-md">
           Ops Deck
         </a>
-        <a href="index.html" class="px-2.5 py-1 bg-slate-900 border border-emerald-950/50 text-[9px] text-slate-400 hover:bg-slate-800 rounded font-bold uppercase transition-all">
-          Presenter
+        <a href="index.html" class="px-2.5 py-1 bg-slate-950/80 border border-emerald-950/50 text-slate-400 hover:bg-slate-900 rounded font-bold uppercase transition-all shadow-md">
+          Presenter Mode
         </a>
       </div>
     </div>
-  </header>
 
-  <!-- Content Workspace Layout -->
-  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    <!-- Camera and Phase status floating displays (Middle Side) -->
+    <div class="absolute top-20 left-6 z-10 pointer-events-none font-mono">
+      <span class="bg-slate-950/90 border border-emerald-500/20 px-2 py-0.5 rounded text-[8px] text-emerald-400 font-bold block shadow-green-glow mb-1">
+        3D FLY-THROUGH SIMULATOR
+      </span>
+      <span class="text-[7.5px] text-slate-500 block" id="cam-telemetry">CAMERA X: 0.00 | CAMERA Z: 0.00</span>
+    </div>
+
+    <div class="absolute top-20 right-6 z-10 pointer-events-none font-mono text-right">
+      <span class="bg-slate-950/90 border border-emerald-500/20 px-2 py-0.5 rounded text-[8px] text-emerald-400 font-bold block shadow-green-glow mb-1">
+        ACTIVE MATRIX
+      </span>
+      <span class="text-[8.5px] text-emerald-400 font-bold block glow-green animate-pulse" id="hud-phase-label">PHASE I: CRISIS</span>
+    </div>
+
+    <!-- Floating HUD alerts (Bottom-Left) -->
+    <div id="hud-alert-box" class="absolute bottom-28 left-6 z-10 pointer-events-none font-mono text-[8px] bg-slate-950/95 border border-red-500/30 px-2.5 py-1 rounded text-red-500 font-bold glow-red animate-pulse flex items-center space-x-1.5 shadow-md">
+      <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+      <span id="hud-alert-text">GRID COLLAPSE: ENERGY RESERVES AT 14.82%</span>
+    </div>
+
+    <!-- Timeline Control bar overlay (Bottom) -->
+    <div class="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-slate-950 to-slate-950/30 px-6 flex flex-col justify-center space-y-1.5 z-10">
+      <div class="flex items-center justify-between">
+        
+        <!-- Audio & Speed controls -->
+        <div class="flex items-center space-x-2.5">
+          <button id="btn-play" class="w-7 h-7 flex items-center justify-center bg-emerald-950 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-900 rounded transition-all shadow-green-glow">
+            <svg id="svg-play" class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="svg-pause" class="w-3 h-3 fill-current hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          </button>
+          
+          <button id="btn-sound" class="w-7 h-7 flex items-center justify-center bg-slate-950/80 border border-slate-800 text-slate-500 hover:text-slate-300 rounded transition-all">
+            <svg id="svg-sound-off" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM12 4L9.91 6.09 12 8.18V4zm-8 8H2v2h2v-2zm4.43 4.29L12 19.82v-4.18l-4.18-4.18-1.39 1.39zM19 12c0 2.76-2.24 5-5 5v2c3.87 0 7-3.13 7-7s-3.13-7-7-7v2c2.76 0 5 2.24 5 5z"/></svg>
+            <svg id="svg-sound-on" class="w-3.5 h-3.5 fill-current hidden text-emerald-400" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+          </button>
+
+          <button id="btn-speed" class="px-2 py-0.5 bg-slate-900 border border-slate-800 text-[9px] text-slate-400 font-bold hover:text-slate-200 rounded font-mono">1.0X</button>
+        </div>
+
+        <!-- Scroll down hint (Center) -->
+        <div class="hidden sm:flex flex-col items-center bounce-arrow text-[9px] text-emerald-400 font-bold glow-green pointer-events-none">
+          <span>SCROLL FOR DETAILS</span>
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+          </svg>
+        </div>
+
+        <!-- Jump Buttons -->
+        <div class="flex items-center space-x-1 font-mono text-[8px]">
+          <button id="btn-ph1" class="px-2.5 py-1 border border-red-500/20 bg-red-950/20 text-red-400 rounded hover:bg-red-900/20 transition-all font-bold">1: Crisis</button>
+          <button id="btn-ph2" class="px-2.5 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">2: Grid</button>
+          <button id="btn-ph3" class="px-2.5 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">3: Synch</button>
+          <button id="btn-ph4" class="px-2.5 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">4: Rebrand</button>
+        </div>
+      </div>
+
+      <!-- Scrubber -->
+      <div class="flex items-center space-x-3">
+        <span class="text-[9px] font-mono text-slate-500 w-12" id="time-display-current">0.00s</span>
+        <input type="range" id="timeline-scrubber" min="0" max="100" step="0.05" value="0" 
+          class="flex-1 h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none shadow-inner">
+        <span class="text-[9px] font-mono text-slate-500 w-12 text-right">30.00s</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Scrolling Landing Page Section (Below Fold) -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8 space-y-12">
     
-    <!-- Left Panel: Campaign Copy & Telemetry Readouts -->
-    <div class="w-full lg:w-[350px] bg-slate-950/40 border-r border-emerald-950/50 flex flex-col shrink-0 overflow-y-auto custom-scroll p-4 space-y-4">
+    <!-- Phase Description Display Card -->
+    <div class="bg-slate-900/40 border border-emerald-950/60 p-6 rounded-xl flex flex-col md:flex-row gap-6 shadow-lg relative overflow-hidden">
+      <div class="absolute inset-y-0 left-0 w-1 bg-emerald-500 shadow-green-glow" id="phase-bar-indicator"></div>
       
-      <!-- Card 1: Phase Mission Explanation -->
-      <div class="bg-slate-900/40 border border-emerald-950/30 p-4 rounded-xl space-y-2.5 font-mono">
-        <span class="text-[9px] text-emerald-400 font-bold block uppercase border-b border-emerald-950/50 pb-1.5" id="phase-card-title">PHASE I: CRUDE COLLAPSE</span>
-        <p class="text-[10.5px] text-slate-400 leading-relaxed" id="phase-card-desc">
+      <div class="flex-1 space-y-3 font-mono">
+        <span class="text-emerald-400 font-bold uppercase tracking-wider text-xs border-b border-emerald-950 pb-1 block" id="phase-card-title">PHASE I: CRUDE COLLAPSE</span>
+        <p class="text-slate-300 text-xs leading-relaxed" id="phase-card-desc">
           In 2026, Singapore faces a total stagnation collapse of imports due to synthetic bacterial contamination of global crude oil. The city stands dark, drawing on critical reserves.
         </p>
       </div>
 
-      <!-- Card 2: Campaign Telemetry Tracking -->
-      <div class="bg-slate-900/40 border border-emerald-950/30 p-4 rounded-xl space-y-3 font-mono">
-        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-emerald-950/50 pb-1.5">Decarbonization Metrics</h3>
+      <!-- Decarbonization Live Metrics Panel -->
+      <div class="w-full md:w-[320px] bg-slate-950 border border-emerald-950/50 p-4 rounded-lg space-y-3 font-mono shrink-0 shadow-inner">
+        <span class="text-[9px] text-slate-500 block uppercase font-bold border-b border-emerald-950/40 pb-1">Decarbonization Telemetry</span>
         <div class="grid grid-cols-2 gap-2 text-center text-[10px]">
-          <div class="bg-slate-950 border border-emerald-950/30 p-2 rounded">
-            <span class="text-slate-500 block text-[7px] uppercase">Decouple Efficiency</span>
+          <div class="bg-slate-900/50 border border-emerald-950/20 p-2 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Decouple Ratio</span>
             <span class="text-xs font-bold text-emerald-400 glow-green" id="tel-decouple">0.0%</span>
           </div>
-          <div class="bg-slate-950 border border-emerald-950/30 p-2 rounded">
-            <span class="text-slate-500 block text-[7px] uppercase">CO2 Vent Rate</span>
+          <div class="bg-slate-900/50 border border-emerald-950/20 p-2 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Carbon Venting</span>
             <span class="text-xs font-bold text-cyan-400 glow-cyan" id="tel-carbon">0.0 MT/Yr</span>
           </div>
-          <div class="bg-slate-950 border border-emerald-950/30 p-2 rounded">
-            <span class="text-slate-500 block text-[7px] uppercase">City Albedo Index</span>
+          <div class="bg-slate-900/50 border border-emerald-950/20 p-2 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Albedo Index</span>
             <span class="text-xs font-bold text-emerald-400 glow-green" id="tel-albedo">0.12</span>
           </div>
-          <div class="bg-slate-950 border border-emerald-950/30 p-2 rounded">
-            <span class="text-slate-500 block text-[7px] uppercase">Net Ambient Temp</span>
+          <div class="bg-slate-900/50 border border-emerald-950/20 p-2 rounded">
+            <span class="text-slate-500 block text-[7px] uppercase">Ambient Temp</span>
             <span class="text-xs font-bold text-amber-500 glow-amber" id="tel-temp">30.8°C</span>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Card 3: UNSDG Targets Alignments -->
-      <div class="bg-slate-900/40 border border-emerald-950/30 p-4 rounded-xl space-y-3 font-mono">
-        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider border-b border-emerald-950/50 pb-1.5">UNSDG Defense Profile</h3>
-        <div class="space-y-2.5 text-[10px]">
-          <!-- SDG 7 -->
-          <div class="flex items-center space-x-3 bg-slate-950 border border-emerald-950/20 p-2 rounded">
-            <div class="w-8 h-8 rounded bg-amber-500 flex items-center justify-center font-bold text-xs text-slate-950 shrink-0">7</div>
-            <div class="flex-1 min-w-0">
-              <span class="text-[8px] text-slate-500 block uppercase">AFFORDABLE & CLEAN ENERGY</span>
-              <span class="text-slate-300 block truncate font-bold" id="sdg-7-status">Scavenging solid-state Leg grids</span>
-            </div>
+    <!-- Section 1: The Threat Matrix -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <div class="space-y-4 font-mono">
+        <div class="border-l-2 border-red-500 pl-3 py-1">
+          <h2 class="text-sm font-bold text-red-500 tracking-wider">01 // THE PETROCLASTIC STAGNATON MATRIX</h2>
+          <span class="text-[9px] text-slate-500 uppercase">Scenario: Hydrocarbon Depolymerization</span>
+        </div>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          The synthetic contamination by <em>Petroclastic-1</em> bacterium triggers rapid polymer breakdown of crude supplies, converting hydrocarbons into carbon monoxide and low-grade paraffins. Singapore’s strategic oil reserves are locked in a strict 20-year depletion cycle, forcing immediate urban energy decoupling.
+        </p>
+
+        <!-- Countdown Ticker Widget -->
+        <div class="bg-slate-900/60 border border-red-950/50 p-4 rounded-lg text-center shadow-lg relative">
+          <span class="text-[8.5px] text-slate-500 block uppercase font-bold mb-1">Time Remaining to Critical Reserves Expiry</span>
+          <div id="contingency-countdown" class="text-lg font-bold text-red-500 glow-red tracking-widest">
+            00Y 000D 00H 00M 00S
           </div>
-          <!-- SDG 11 -->
-          <div class="flex items-center space-x-3 bg-slate-950 border border-emerald-950/20 p-2 rounded">
-            <div class="w-8 h-8 rounded bg-orange-600 flex items-center justify-center font-bold text-xs text-white shrink-0">11</div>
-            <div class="flex-1 min-w-0">
-              <span class="text-[8px] text-slate-500 block uppercase">SUSTAINABLE CITIES & COMMUNITIES</span>
-              <span class="text-slate-300 block truncate font-bold" id="sdg-11-status">Decoupled city thermal flow grid</span>
-            </div>
+          <span class="text-[7.5px] text-red-500/60 block mt-1 uppercase font-bold animate-pulse">ALARM ACTIVE: CONTAMINATED RESERVE FEED ONLY</span>
+        </div>
+      </div>
+
+      <!-- Beaker fluid canvas simulation (re-integrated here) -->
+      <div class="bg-slate-900/30 border border-red-950/40 p-6 rounded-xl flex flex-col justify-between items-center min-h-[220px]">
+        <span class="text-[8.5px] text-slate-500 font-mono block uppercase w-full text-left border-b border-red-950 pb-1.5 mb-2">Liquid Stagnation Fluid Mechanics</span>
+        <div class="w-full flex-1 flex justify-center items-center">
+          <canvas id="reserve-fluid-canvas" width="280" height="150" class="border border-red-950/30 rounded bg-slate-950/60"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Thermoelectric Decoupled Gradiometry -->
+    <div class="bg-slate-900/20 border border-emerald-950/40 p-6 rounded-xl space-y-6">
+      <div class="border-l-2 border-emerald-500 pl-3 py-1">
+        <h2 class="text-sm font-bold text-emerald-400 tracking-wider">02 // SOLID-STATE SOLID GRADIOMETRY</h2>
+        <span class="text-[9px] text-slate-500 font-mono uppercase">Decoupling Carnot heat equations</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 font-mono text-xs text-slate-400 leading-relaxed">
+        <div class="space-y-3">
+          <span class="text-emerald-400 block font-bold text-[10px] uppercase">Quantum Lattice decoupling</span>
+          <p class="text-[11px]">
+            To harvest the escaping terrestrial longwave infrared radiation, HELIOS-NET implements a dual-layer thermoelectric semiconductor grid. This scales up electrical conductivity ($\sigma$) while suppressing thermal conductivity ($k$) by scattering acoustic phonons at nano-lattice boundary points.
+          </p>
+        </div>
+
+        <!-- Carnot limit card -->
+        <div class="bg-slate-950 border border-emerald-950/40 p-4 rounded-lg flex flex-col justify-center space-y-2">
+          <span class="text-[8.5px] text-amber-500 font-bold uppercase tracking-wider block border-b border-emerald-950/30 pb-1">Carnot Efficiency Limit</span>
+          <div class="text-center py-2 text-base font-bold text-slate-200">
+            \[\eta_{\text{max}} = 1 - \frac{T_c}{T_h}\]
           </div>
-          <!-- SDG 13 -->
-          <div class="flex items-center space-x-3 bg-slate-950 border border-emerald-950/20 p-2 rounded">
-            <div class="w-8 h-8 rounded bg-emerald-700 flex items-center justify-center font-bold text-xs text-white shrink-0">13</div>
-            <div class="flex-1 min-w-0">
-              <span class="text-[8px] text-slate-500 block uppercase">CLIMATE ACTION</span>
-              <span class="text-slate-300 block truncate font-bold" id="sdg-13-status">Venting 100% of urban infrared force</span>
-            </div>
+          <span class="text-[8px] text-slate-500 block">
+            Thermoelectric conversion efficiency limits scale directly with the absolute thermal gradient between the hot plate ($T_h$) and deep space ($T_c$).
+          </span>
+        </div>
+
+        <!-- Seebeck card -->
+        <div class="bg-slate-950 border border-emerald-950/40 p-4 rounded-lg flex flex-col justify-center space-y-2">
+          <span class="text-[8.5px] text-cyan-400 font-bold uppercase tracking-wider block border-b border-emerald-950/30 pb-1">Seebeck Voltage potential</span>
+          <div class="text-center py-2 text-base font-bold text-slate-200">
+            \[V = S \cdot (T_h - T_c)\]
+          </div>
+          <span class="text-[8px] text-slate-500 block">
+            Generated electrical potential ($V$) is proportional to Seebeck coefficient ($S$) times absolute plate temperature gradient.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Interactive Power split slider -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <!-- Info Panel -->
+      <div class="space-y-4 font-mono">
+        <div class="border-l-2 border-emerald-500 pl-3 py-1">
+          <h2 class="text-sm font-bold text-emerald-400 tracking-wider">03 // BEAMED POWER GRID ROUTING</h2>
+          <span class="text-[9px] text-slate-500 uppercase">Interactive telemetry split calculator</span>
+        </div>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          The global HELIOS-NET LEO Dyson Swarm is configured to split intercepted infrared vectors. A portion (30% nominal) is beamed down via phase-locked microwave vectors to Singapore coastal rectenna fields to support urban electricity. The remaining (70%) is vented directly into deep space via high-power lasers.
+        </p>
+
+        <!-- Dynamic interactive controls -->
+        <div class="bg-slate-900/50 border border-emerald-950/50 p-4 rounded-lg space-y-3">
+          <div class="flex justify-between text-xs font-bold">
+            <span class="text-slate-400">Power Beaming Split</span>
+            <span class="text-emerald-400" id="scroll-lbl-split">70% Space Laser</span>
+          </div>
+          <input type="range" id="scroll-split-slider" min="0" max="100" value="70" 
+            class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none">
+          <div class="flex justify-between text-[7px] text-slate-500 font-bold">
+            <span>100% COASTAL RECTENNA BEAM</span>
+            <span>100% SPACE VENTING</span>
           </div>
         </div>
       </div>
 
-    </div>
-
-    <!-- Center Panel: 3D Skyline Viewport -->
-    <div class="flex-1 bg-slate-950/60 flex flex-col relative">
-      <div class="absolute top-4 left-4 z-10 pointer-events-none space-y-1 font-mono">
-        <span class="bg-slate-950/90 border border-emerald-500/20 px-2.5 py-1 rounded text-[9px] text-emerald-400 font-bold block shadow-green-glow">
-          PROSTHETIC PERSPECTIVE URBAN FLY-THROUGH
-        </span>
-        <span class="text-[7.5px] text-slate-500 block" id="cam-telemetry">CAMERA X: 0.00 | CAMERA Z: 0.00 | CAMERA Y: 0.00</span>
-      </div>
-
-      <!-- Canvas container -->
-      <div class="flex-1 relative" id="canvas-container">
-        <canvas id="skyline-canvas" class="absolute inset-0 w-full h-full"></canvas>
-      </div>
-
-      <!-- Overlay HUD Alert Messages -->
-      <div id="hud-alert-box" class="absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-red-500/30 px-3 py-1.5 rounded text-red-500 font-bold glow-red animate-pulse flex items-center space-x-2">
-        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-        <span id="hud-alert-text">GRID COLLAPSE: ENERGY RESERVES AT 14.82%</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer Timeline Control Bar -->
-  <footer class="h-24 border-t border-emerald-950/70 bg-slate-950 px-6 flex flex-col justify-center space-y-2 shrink-0">
-    <div class="flex items-center justify-between">
-      
-      <!-- Controls -->
-      <div class="flex items-center space-x-3">
-        <!-- Play / Pause Button -->
-        <button id="btn-play" class="w-8 h-8 flex items-center justify-center bg-emerald-950 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-900 rounded font-bold transition-all shadow-green-glow">
-          <svg id="svg-play" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          <svg id="svg-pause" class="w-3.5 h-3.5 fill-current hidden" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-        </button>
-
-        <!-- Sound Toggle -->
-        <button id="btn-sound" class="w-8 h-8 flex items-center justify-center bg-slate-900 border border-slate-800 text-slate-500 hover:text-slate-300 rounded transition-all">
-          <svg id="svg-sound-off" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM12 4L9.91 6.09 12 8.18V4zm-8 8H2v2h2v-2zm4.43 4.29L12 19.82v-4.18l-4.18-4.18-1.39 1.39zM19 12c0 2.76-2.24 5-5 5v2c3.87 0 7-3.13 7-7s-3.13-7-7-7v2c2.76 0 5 2.24 5 5z"/></svg>
-          <svg id="svg-sound-on" class="w-3.5 h-3.5 fill-current hidden text-emerald-400" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-        </button>
-
-        <!-- Speed multiplier -->
-        <button id="btn-speed" class="px-2.5 py-1 bg-slate-900 border border-slate-800 text-[10px] text-slate-400 font-bold hover:text-slate-200 rounded font-mono">1.0X</button>
-      </div>
-
-      <!-- Quick phase jumpers -->
-      <div class="flex items-center space-x-1.5 font-mono text-[9px]">
-        <button id="btn-ph1" class="px-3 py-1 border border-red-500/20 bg-red-950/20 text-red-400 rounded hover:bg-red-900/20 transition-all font-bold">1: Collapse</button>
-        <button id="btn-ph2" class="px-3 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">2: Scavenge</button>
-        <button id="btn-ph3" class="px-3 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">3: Synch</button>
-        <button id="btn-ph4" class="px-3 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold">4: Rebrand</button>
+      <!-- Live metrics display -->
+      <div class="bg-slate-900/40 border border-emerald-950/50 p-6 rounded-xl grid grid-cols-2 gap-4 text-center font-mono">
+        <div class="bg-slate-950 border border-emerald-950/30 p-3.5 rounded shadow-lg">
+          <span class="text-slate-500 block text-[7px] uppercase">Coastal Rectenna Hub</span>
+          <span class="text-lg font-bold text-emerald-400 glow-green" id="scroll-beamed-power">35.3 TW</span>
+          <span class="text-[7.5px] text-slate-500 block mt-0.5" id="scroll-beamed-pct">30% Grid Split</span>
+        </div>
+        <div class="bg-slate-900 border border-emerald-950/30 p-3.5 rounded shadow-lg">
+          <span class="text-slate-500 block text-[7px] uppercase">Deep Space Vent</span>
+          <span class="text-lg font-bold text-cyan-400 glow-cyan" id="scroll-vented-power">82.5 TW</span>
+          <span class="text-[7.5px] text-slate-500 block mt-0.5" id="scroll-vented-pct">70% Grid Split</span>
+        </div>
+        <div class="bg-slate-950 border border-emerald-950/30 p-3.5 rounded col-span-2 shadow-lg">
+          <span class="text-slate-500 block text-[7px] uppercase">Net Global Heat Deflection</span>
+          <span class="text-lg font-bold text-emerald-400 glow-green">117.8 Terawatts</span>
+          <span class="text-[7.5px] text-slate-500 block mt-0.5">Calculated net thermal mitigation under 10,000 active nodes</span>
+        </div>
       </div>
     </div>
 
-    <!-- Timeline Scrubber Container -->
-    <div class="flex items-center space-x-3">
-      <span class="text-[9px] font-mono text-slate-500 w-12" id="time-display-current">0.00s</span>
-      <input type="range" id="timeline-scrubber" min="0" max="100" step="0.05" value="0" 
-        class="flex-1 h-1.5 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none shadow-inner">
-      <span class="text-[9px] font-mono text-slate-500 w-12 text-right">30.00s</span>
+    <!-- Section 4: UNSDG Alliance Alignment -->
+    <div class="bg-slate-900/40 border border-emerald-950/50 p-6 rounded-xl space-y-6">
+      <div class="border-l-2 border-emerald-500 pl-3 py-1">
+        <h2 class="text-sm font-bold text-emerald-400 tracking-wider">04 // GLOBAL ADVOCATE DEFENSE CONSENSUS</h2>
+        <span class="text-[9px] text-slate-500 font-mono uppercase">Stakeholder Alignment & UN Sustainability targets</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-mono text-xs">
+        
+        <!-- Financial Advocacy -->
+        <div class="bg-slate-950/80 border border-emerald-950/40 p-4 rounded-lg space-y-2">
+          <span class="text-emerald-400 font-bold block text-[10px] uppercase border-b border-emerald-950/40 pb-1">FINANCIAL INFRASTRUCTURE</span>
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            Phase II leverages existing urban telemetry networks to minimize deployment CAPEX. Directing 30% of energy to coastal rectenna cells offsets standard grid investment costs, generating green bond yields.
+          </p>
+          <div class="text-[8.5px] text-slate-500 flex justify-between pt-1">
+            <span>SDG 8 Alignment</span>
+            <span class="text-emerald-400 font-bold">Consensus: Nominal</span>
+          </div>
+        </div>
+
+        <!-- Ecological Advocacy -->
+        <div class="bg-slate-950/80 border border-emerald-950/40 p-4 rounded-lg space-y-2">
+          <span class="text-cyan-400 font-bold block text-[10px] uppercase border-b border-emerald-950/40 pb-1">ECOLOGICAL BIOSPHERE</span>
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            By venting 70% of longwave infrared thermal footprints to deep space, HELIOS-NET mitigates regional urban heat dome impacts. Stabilizes coastal sea level indexes and microclimate profiles.
+          </p>
+          <div class="text-[8.5px] text-slate-500 flex justify-between pt-1">
+            <span>SDG 13 Alignment</span>
+            <span class="text-emerald-400 font-bold">Consensus: High</span>
+          </div>
+        </div>
+
+        <!-- Citizen Welfare Advocacy -->
+        <div class="bg-slate-950/80 border border-emerald-950/40 p-4 rounded-lg space-y-2">
+          <span class="text-amber-500 font-bold block text-[10px] uppercase border-b border-emerald-950/40 pb-1">CITIZEN WELFARE</span>
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            Thermoelectric solid-state systems guarantee energy independence from foreign oil importation cartels. Provides local communities with low-cost utility access and high-density tech career paths.
+          </p>
+          <div class="text-[8.5px] text-slate-500 flex justify-between pt-1">
+            <span>SDG 11 Alignment</span>
+            <span class="text-emerald-400 font-bold">Consensus: Maximum</span>
+          </div>
+        </div>
+
+      </div>
     </div>
+
+    <!-- Call to Action (CTA) Footer Section -->
+    <div class="border border-emerald-500/20 bg-slate-900/30 p-8 rounded-xl text-center space-y-4 font-mono shadow-green-glow">
+      <span class="text-[9px] text-slate-500 uppercase tracking-widest font-bold block">Consolidated Operational Grid Portal</span>
+      <h2 class="text-base font-bold text-emerald-400 glow-green">PROJECT HELIOS-NET SYSTEM SYNC</h2>
+      <p class="text-xs text-slate-400 max-w-xl mx-auto leading-relaxed">
+        Access real-time telemetry node synchronization feeds or return to standard executive presenter slides.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+        <a href="dashboard.html" target="_blank" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold tracking-widest rounded-lg shadow-green-glow hover:shadow-lg transition-all text-xs">
+          LAUNCH LIVE OPERATIONS CENTER
+        </a>
+        <a href="index.html" class="w-full sm:w-auto px-6 py-2.5 bg-slate-950 border border-emerald-950/50 text-emerald-400 hover:bg-slate-900 font-bold tracking-widest rounded-lg transition-all text-xs">
+          RETURN TO PRESENTER SLIDES
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="h-10 border-t border-emerald-950/70 bg-slate-950 text-slate-600 font-mono text-[9px] px-6 flex items-center justify-between shrink-0">
+    <span>Singapore Sciences Collaborative Presentation Module</span>
+    <span>Rebrand Campaign Phase II Landing Portal</span>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
   <script>
     // -------------------------------------------------------------
     // PROCEDURAL AUDIO SYNTHESIZER ENGINE (Web Audio API)
@@ -432,12 +600,13 @@
     const ctx = canvas.getContext('2d');
     const container = document.getElementById('canvas-container');
 
-    let width = canvas.width = container.clientWidth || 800;
-    let height = canvas.height = container.clientHeight || 500;
+    // Robust dimension selection fallbacks to prevent 0px collapses
+    let width = canvas.width = container.clientWidth || window.innerWidth;
+    let height = canvas.height = container.clientHeight || (window.innerHeight * 0.70);
 
     function resizeCanvas() {
-      width = canvas.width = container.clientWidth || 800;
-      height = canvas.height = container.clientHeight || 500;
+      width = canvas.width = container.clientWidth || window.innerWidth;
+      height = canvas.height = container.clientHeight || (window.innerHeight * 0.70);
     }
     window.addEventListener('resize', resizeCanvas);
 
@@ -471,6 +640,7 @@
     
     const cardTitle = document.getElementById('phase-card-title');
     const cardDesc = document.getElementById('phase-card-desc');
+    const phaseBarIndicator = document.getElementById('phase-bar-indicator');
 
     const telDecouple = document.getElementById('tel-decouple');
     const telCarbon = document.getElementById('tel-carbon');
@@ -493,7 +663,7 @@
         end: 7.5,
         title: "PHASE I: OIL COLLAPSE MATRIX",
         desc: "Singapore faces total isolation of energy supply lines due to Petroclastic contamination. Downtown coordinates are dark wireframe grids relying on standard emergency reserves. Heavy infrared thermal leakage vents upward.",
-        color: "text-red-500",
+        color: "bg-red-500",
         btn: btnPh1,
         style: "border-red-500/20 bg-red-950/20 text-red-400"
       },
@@ -503,7 +673,7 @@
         end: 15.0,
         title: "PHASE II: HEAT INTEGRATION",
         desc: "Deploying high-altitude scannable aerostat mesh cells. These micro-coherence receivers scavenge waste thermal footprints directly from industrial bases, initializing thermodynamic redirection vectors.",
-        color: "text-cyan-400",
+        color: "bg-cyan-400",
         btn: btnPh2,
         style: "border-cyan-500/20 bg-cyan-950/20 text-cyan-400"
       },
@@ -513,7 +683,7 @@
         end: 22.5,
         title: "PHASE III: LASER BEAM SYNCHRONY",
         desc: "Low-Earth Orbit Dyson satellites align. Singapore Rectenna modules lock focus. Concentric microwave beams lock phase, transferring high-density electric vectors to ground grids while routing raw thermal excess to space.",
-        color: "text-emerald-400",
+        color: "bg-emerald-400",
         btn: btnPh3,
         style: "border-emerald-500/20 bg-emerald-950/20 text-emerald-400"
       },
@@ -521,9 +691,9 @@
         name: "PHASE IV: GREEN SOLENOID",
         start: 22.5,
         end: 30.0,
-        title: "PHASE IV: THERMALLY DECUPLED Hub",
+        title: "PHASE IV: THERMALLY DECUPLED HUB",
         desc: "Singapore rebrands as a sustainable, fully carbon-neutral biosphere. Skyline architectures glow with integrated neon solenoid lattices. Decoupled conversion exceeds 99.8% stability.",
-        color: "text-emerald-400",
+        color: "bg-emerald-500",
         btn: btnPh4,
         style: "border-emerald-500/20 bg-emerald-950/20 text-emerald-400"
       }
@@ -719,13 +889,16 @@
       phaseLabel.innerText = activePhase.name;
       cardTitle.innerText = activePhase.title;
       cardDesc.innerText = activePhase.desc;
+      
+      // Update color strip indicator
+      phaseBarIndicator.className = `absolute inset-y-0 left-0 w-1 ${activePhase.color} shadow-green-glow`;
 
       // Update active quick-jump styles
       phases.forEach(p => {
         if (p === activePhase) {
-          p.btn.className = `px-3 py-1 border rounded transition-all font-bold ${p.style}`;
+          p.btn.className = `px-2.5 py-1 border rounded transition-all font-bold ${p.style}`;
         } else {
-          p.btn.className = `px-3 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold`;
+          p.btn.className = `px-2.5 py-1 border border-transparent text-slate-500 rounded hover:text-slate-300 transition-all font-bold`;
         }
       });
 
@@ -741,7 +914,7 @@
         albedo = 0.12;
         temp = 30.8 + Math.random() * 0.1;
         
-        alertBox.className = "absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-red-500/30 px-3 py-1.5 rounded text-red-500 font-bold shadow-red-glow animate-pulse flex items-center space-x-2";
+        alertBox.className = "absolute bottom-28 left-6 z-10 pointer-events-none font-mono text-[8px] bg-slate-950/95 border border-red-500/30 px-2.5 py-1 rounded text-red-500 font-bold shadow-red-glow animate-pulse flex items-center space-x-1.5";
         alertText.innerText = "GRID SHUTDOWN: ACCUMULATING URBAN HEAT FLUX";
         
         sdg7.innerText = "STANDBY: No solid-state thermoelectric output";
@@ -755,7 +928,7 @@
         albedo = 0.12 + factor * 0.08;
         temp = 30.8 - factor * 1.2;
 
-        alertBox.className = "absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-cyan-500/30 px-3 py-1.5 rounded text-cyan-400 font-bold shadow-cyan-glow flex items-center space-x-2";
+        alertBox.className = "absolute bottom-28 left-6 z-10 pointer-events-none font-mono text-[8px] bg-slate-950/95 border border-cyan-500/30 px-2.5 py-1 rounded text-cyan-400 font-bold shadow-cyan-glow flex items-center space-x-1.5";
         alertText.innerText = `AEROSTATS ONLINE: CONNECTING LEG COHERENCE (${decouple.toFixed(1)}%)`;
 
         sdg7.innerText = "INITIALIZING: Connecting solid-state legs";
@@ -769,7 +942,7 @@
         albedo = 0.20 + factor * 0.15;
         temp = 29.6 - factor * 2.1;
 
-        alertBox.className = "absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-emerald-500/30 px-3 py-1.5 rounded text-emerald-400 font-bold shadow-green-glow flex items-center space-x-2";
+        alertBox.className = "absolute bottom-28 left-6 z-10 pointer-events-none font-mono text-[8px] bg-slate-950/95 border border-emerald-500/30 px-2.5 py-1 rounded text-emerald-400 font-bold shadow-green-glow flex items-center space-x-1.5";
         alertText.innerText = `ORBITAL TRANSMISSION STABLE: SYNCHRONIZING GRID`;
 
         sdg7.innerText = `SYNCHRONIZED: Harvesting ${decouple.toFixed(1)}% laser split`;
@@ -783,7 +956,7 @@
         albedo = 0.35 + factor * 0.13;
         temp = 27.5 - factor * 1.5;
 
-        alertBox.className = "absolute bottom-4 left-4 z-10 pointer-events-none font-mono text-[9px] bg-slate-950/90 border border-emerald-500/80 px-3 py-1.5 rounded text-emerald-400 font-bold shadow-green-glow flex items-center space-x-2";
+        alertBox.className = "absolute bottom-28 left-6 z-10 pointer-events-none font-mono text-[8px] bg-slate-950/95 border border-emerald-500/80 px-2.5 py-1 rounded text-emerald-400 font-bold shadow-green-glow flex items-center space-x-1.5";
         alertText.innerText = "100% DECUPLED: ZERO-EMISSIONS BIOSPHERE NOMINAL";
 
         sdg7.innerText = "NOMINAL: Zero-fuel solid state power matrix";
@@ -792,7 +965,7 @@
       }
 
       // Update Text trackers
-      hudDecoupleVal.innerText = `${decouple.toFixed(2)}%`;
+      decoupleVal.innerText = `${decouple.toFixed(2)}%`;
       telDecouple.innerText = `${decouple.toFixed(1)}%`;
       telCarbon.innerText = `${carbon.toFixed(2)} MT/Yr`;
       telAlbedo.innerText = albedo.toFixed(2);
@@ -811,7 +984,6 @@
       }
 
       // Camera orbital pathing math
-      // Slow rotation over time
       const timeScale = currentTime * 0.05 + 1.2;
       cameraAngle = timeScale;
       const camRadius = 380;
@@ -819,7 +991,7 @@
       const camZ = Math.cos(timeScale) * camRadius;
       const camY = -120 + Math.sin(timeScale * 0.6) * 45; // fly-through vertical float
       
-      camTelemetry.innerText = `CAMERA X: ${camX.toFixed(1)} | CAMERA Y: ${camY.toFixed(1)} | CAMERA Z: ${camZ.toFixed(1)}`;
+      camTelemetry.innerText = `CAMERA X: ${camX.toFixed(1)} | CAMERA Z: ${camZ.toFixed(1)}`;
 
       // Grid helper on ground (glowing grid mesh)
       ctx.lineWidth = 1;
@@ -864,13 +1036,12 @@
         ctx.strokeStyle = `rgba(16, 185, 129, ${ringOpacity * 0.4})`;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        // project a circular ring in perspective (approximate by drawing an ellipse or circles)
         ctx.arc(projSg.x, projSg.y, ringRad * (350 / (350 + projSg.z)), 0, Math.PI * 2);
         ctx.stroke();
       }
 
       // Dynamic Node Drawing styles
-      let wireColor = 'rgba(226, 232, 240, 0.15)'; // light default
+      let wireColor = 'rgba(226, 232, 240, 0.15)'; 
       let glowFactor = 0;
       
       if (progressPercent < 25) {
@@ -894,7 +1065,6 @@
       buildings.forEach(b => {
         // Project corners based on type
         if (b.type === "block") {
-          // 8 corners of block
           const h = b.h;
           const x0 = b.x - b.w/2;
           const x1 = b.x + b.w/2;
@@ -912,7 +1082,6 @@
             project3d(x0, -h, z1, camX, camY, camZ, 0),
           ];
 
-          // Draw wireframe lines
           ctx.strokeStyle = wireColor;
           ctx.lineWidth = glowFactor > 0 ? 1.5 : 1;
           
@@ -945,7 +1114,6 @@
           }
         }
         else if (b.type === "bridge") {
-          // MBS Skybridge (drawn above columns)
           const x0 = b.x;
           const x1 = b.x + b.w;
           const z0 = b.z;
@@ -993,20 +1161,17 @@
           }
         }
         else if (b.type === "cone") {
-          // Gardens by the Bay supertrees: Cone top on central column
           const basePt = project3d(b.x, 0, b.z, camX, camY, camZ, 0);
           const topPt = project3d(b.x, -b.h, b.z, camX, camY, camZ, 0);
 
           ctx.strokeStyle = wireColor;
           
           if (basePt && topPt) {
-            // central trunk line
             ctx.beginPath();
             ctx.moveTo(basePt.x, basePt.y);
             ctx.lineTo(topPt.x, topPt.y);
             ctx.stroke();
 
-            // draw cone rings at top
             const steps = 12;
             ctx.beginPath();
             for (let i = 0; i <= steps; i++) {
@@ -1021,7 +1186,6 @@
             }
             ctx.stroke();
 
-            // cone slope lines
             for (let i = 0; i < steps; i += 3) {
               const theta = (i / steps) * Math.PI * 2;
               const ringX = b.x + Math.cos(theta) * b.r;
@@ -1038,14 +1202,12 @@
           }
         }
         else if (b.type === "flyer") {
-          // Singapore Flyer: Large wheel structure
           const centerPt = project3d(b.x, -b.h, b.z, camX, camY, camZ, 0);
           const basePt = project3d(b.x, 0, b.z, camX, camY, camZ, 0);
 
           ctx.strokeStyle = wireColor;
           
           if (centerPt && basePt) {
-            // Support leg structures
             const leftLeg = project3d(b.x - 20, 0, b.z, camX, camY, camZ, 0);
             const rightLeg = project3d(b.x + 20, 0, b.z, camX, camY, camZ, 0);
             
@@ -1057,13 +1219,11 @@
               ctx.stroke();
             }
 
-            // Flyer circular wheel
             const steps = 18;
             const flyerAngle = frame * 0.005;
             ctx.beginPath();
             for (let i = 0; i <= steps; i++) {
               const theta = (i / steps) * Math.PI * 2;
-              // Circle plane is facing X-Z side tilting
               const fX = b.x + Math.cos(theta + flyerAngle) * b.r;
               const fY = -b.h + Math.sin(theta + flyerAngle) * b.r;
               const proj = project3d(fX, fY, b.z, camX, camY, camZ, 0);
@@ -1074,7 +1234,6 @@
             }
             ctx.stroke();
 
-            // Spokes
             for (let i = 0; i < steps; i += 3) {
               const theta = (i / steps) * Math.PI * 2;
               const fX = b.x + Math.cos(theta + flyerAngle) * b.r;
@@ -1093,7 +1252,6 @@
 
       // --- PHASE II: HIGH ALTITUDE COHERENCE AEROSTAT MESH ---
       if (progressPercent >= 25) {
-        // Draw scannable aerostat mesh cells
         const numCells = 8;
         const cellRadius = 150;
         const cells = [];
@@ -1105,13 +1263,12 @@
           const theta = (i / numCells) * Math.PI * 2;
           const cx = Math.cos(theta) * cellRadius;
           const cz = Math.sin(theta) * cellRadius;
-          const cy = -160; // high above buildings
+          const cy = -160;
 
           const proj = project3d(cx, cy, cz, camX, camY, camZ, 0);
           if (proj) {
             cells.push({ x: proj.x, y: proj.y, z: proj.z, rx: cx, rz: cz });
             
-            // Draw physical floating cell bubble ring
             ctx.fillStyle = progressPercent >= 50 ? '#10b981' : '#38bdf8';
             ctx.beginPath();
             ctx.arc(proj.x, proj.y, 4 * (350 / (350 + proj.z)), 0, Math.PI * 2);
@@ -1123,7 +1280,6 @@
           }
         }
 
-        // Draw mesh connection vectors (spider web linkages)
         ctx.beginPath();
         for (let i = 0; i < cells.length; i++) {
           const next = cells[(i + 1) % cells.length];
@@ -1132,8 +1288,6 @@
         }
         ctx.stroke();
 
-        // Connect cells down to top of nearby buildings
-        ctx.strokeStyle = progressPercent >= 50 ? 'rgba(16, 185, 129, 0.08)' : 'rgba(56, 189, 248, 0.12)';
         cells.forEach(c => {
           buildings.forEach(b => {
             if (b.type === "block" && Math.abs(b.x - c.rx) < 120 && Math.abs(b.z - c.rz) < 120) {
@@ -1151,24 +1305,20 @@
 
       // --- PHASE III & IV: COSMIC ORBITAL SAT LAUNCH & LASER BEAMS ---
       if (progressPercent >= 50) {
-        // Beaming vectors from LEO satellites
         sats.forEach(sat => {
           sat.angle += sat.speed * 0.2;
           
-          // Satellite 3D coordinate
           const sX = sat.altitude * Math.cos(sat.angle) * Math.cos(sat.inclination);
-          const sY = -280; // extremely high orbital altitude
+          const sY = -280; 
           const sZ = sat.altitude * Math.sin(sat.angle) * Math.cos(sat.inclination);
 
           const projSat = project3d(sX, sY, sZ, camX, camY, camZ, 0);
           if (projSat) {
-            // Draw satellite
             ctx.fillStyle = '#10b981';
             ctx.beginPath();
             ctx.arc(projSat.x, projSat.y, 2.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Laser beam from orbit pointing directly to Singapore Rectenna Hub (X=0, Z=0)
             if (projSg && Math.random() > 0.45) {
               const laserOpacity = progressPercent >= 75 ? 0.2 : 0.15;
               ctx.strokeStyle = `rgba(16, 185, 129, ${laserOpacity})`;
@@ -1184,12 +1334,11 @@
 
       // --- PHASE IV: FLOATING HUD GRAPHICS TEXTS ---
       if (progressPercent >= 75) {
-        // Draw high-tech 3D titles floating in perspective space above Singapore MBS
         const titlePt = project3d(-30, -140, 20, camX, camY, camZ, 0);
         if (titlePt) {
           ctx.fillStyle = '#10b981';
           ctx.font = 'bold 9px monospace';
-          ctx.fillText("DECUPLED GREEN SOLENOID ACTIVE", titlePt.x - 70, titlePt.y);
+          ctx.fillText("DECOUPLED GREEN SOLENOID ACTIVE", titlePt.x - 70, titlePt.y);
           ctx.fillText("THERMAL EFFICIENCY: 99.82%", titlePt.x - 55, titlePt.y + 12);
           
           ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
@@ -1200,8 +1349,124 @@
       requestAnimationFrame(renderLoop);
     }
 
-    // Launch initial render
+    // Launch initial render loop
     requestAnimationFrame(renderLoop);
+
+    // -------------------------------------------------------------
+    // LIVE TICKERS AND INTERACTIVE CALCULATORS BELOW THE FOLD
+    // -------------------------------------------------------------
+    
+    // Countdown Ticker
+    function updateCountdown() {
+      const stagnationDate = new Date("2046-06-01T00:00:00Z");
+      const now = new Date();
+      const diff = stagnationDate - now;
+
+      if (diff <= 0) {
+        document.getElementById('contingency-countdown').innerText = "00Y 000D 00H 00M 00S";
+        return;
+      }
+
+      const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+      const days = Math.floor((diff % (1000 * 60 * 60 * 24 * 365.25)) / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const yStr = String(years).padStart(2, '0');
+      const dStr = String(days).padStart(3, '0');
+      const hStr = String(hours).padStart(2, '0');
+      const mStr = String(minutes).padStart(2, '0');
+      const sStr = String(seconds).padStart(2, '0');
+
+      document.getElementById('contingency-countdown').innerText = `${yStr}Y ${dStr}D ${hStr}H ${mStr}M ${sStr}S`;
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    // Reserve Beaker Fluid Canvas (Fading Reserves)
+    const fluidCanvas = document.getElementById('reserve-fluid-canvas');
+    const fCtx = fluidCanvas.getContext('2d');
+    let fluidOffset = 0;
+
+    function renderFluidBeaker() {
+      fluidOffset += 0.05;
+      const w = fluidCanvas.width;
+      const h = fluidCanvas.height;
+      
+      fCtx.clearRect(0, 0, w, h);
+      
+      // Draw Beaker wireframe outline
+      fCtx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+      fCtx.lineWidth = 2;
+      fCtx.beginPath();
+      fCtx.moveTo(w/2 - 50, 20);
+      fCtx.lineTo(w/2 - 50, h - 20);
+      fCtx.lineTo(w/2 + 50, h - 20);
+      fCtx.lineTo(w/2 + 50, 20);
+      fCtx.stroke();
+
+      // Calculating sloshing level (degrading over real time)
+      const maxFillHeight = h - 50;
+      // Synthesize a decay: reserve level is roughly 14.82% based on countdown
+      const fillHeight = maxFillHeight * 0.1482;
+      const startY = h - 20 - fillHeight;
+
+      // Draw Sloshing Crude oil fluid (glowing red paraffins)
+      const fluidGrad = fCtx.createLinearGradient(0, startY, 0, h - 20);
+      fluidGrad.addColorStop(0, 'rgba(239, 68, 68, 0.6)');
+      fluidGrad.addColorStop(1, 'rgba(127, 29, 29, 0.8)');
+      fCtx.fillStyle = fluidGrad;
+      
+      fCtx.beginPath();
+      fCtx.moveTo(w/2 - 48, h - 22);
+      fCtx.lineTo(w/2 - 48, startY);
+      
+      // wave sloshing
+      for(let x = w/2 - 48; x <= w/2 + 48; x += 2) {
+        const waveY = startY + Math.sin(x * 0.08 + fluidOffset) * 2.5;
+        fCtx.lineTo(x, waveY);
+      }
+      
+      fCtx.lineTo(w/2 + 48, h - 22);
+      fCtx.closePath();
+      fCtx.fill();
+
+      // Beaker volume level indicators
+      fCtx.fillStyle = 'rgba(239, 68, 68, 0.5)';
+      fCtx.font = '8px monospace';
+      fCtx.fillText("100% CAP", w/2 + 55, 30);
+      fCtx.fillText("50% HALF", w/2 + 55, h/2);
+      fCtx.fillText("14.82% CRIT", w/2 + 55, startY + 3);
+
+      requestAnimationFrame(renderFluidBeaker);
+    }
+    requestAnimationFrame(renderFluidBeaker);
+
+    // Interactive split slider below the fold
+    const scrollSlider = document.getElementById('scroll-split-slider');
+    const scrollLbl = document.getElementById('scroll-lbl-split');
+    const scrollBeamed = document.getElementById('scroll-beamed-power');
+    const scrollVented = document.getElementById('scroll-vented-power');
+    const scrollBeamedPct = document.getElementById('scroll-beamed-pct');
+    const scrollVentedPct = document.getElementById('scroll-vented-pct');
+
+    scrollSlider.addEventListener('input', (e) => {
+      const splitVal = parseFloat(e.target.value);
+      scrollLbl.innerText = `${splitVal}% Space Laser`;
+      
+      const maxPower = 117.8;
+      const laserFraction = splitVal / 100;
+      const microFraction = 1.0 - laserFraction;
+
+      const ventedPower = maxPower * laserFraction;
+      const beamedPower = maxPower * microFraction;
+
+      scrollVented.innerText = `${ventedPower.toFixed(1)} TW`;
+      scrollVentedPct.innerText = `${splitVal}% Grid Split`;
+      scrollBeamed.innerText = `${beamedPower.toFixed(1)} TW`;
+      scrollBeamedPct.innerText = `${(100 - splitVal).toFixed(0)}% Grid Split`;
+    });
 
   </script>
 </body>
