@@ -446,6 +446,7 @@
     let currentTime = 0; // seconds, total 30s
     let speedMult = 1.0;
     const totalDuration = 30.0;
+    let cameraAngle = 0;
 
     const btnPlay = document.getElementById('btn-play');
     const btnSound = document.getElementById('btn-sound');
@@ -598,23 +599,26 @@
 
     // 3D Perspective Projection Function
     function project3d(x, y, z, camX, camY, camZ, angle) {
-      // Rotate camera around central Y axis
-      const cosY = Math.cos(angle);
-      const sinY = Math.sin(angle);
+      // Use the global cameraAngle to rotate the world coordinate system
+      const theta = cameraAngle;
+      const cosY = Math.cos(-theta);
+      const sinY = Math.sin(-theta);
       
       const rx = x * cosY - z * sinY;
       const ry = y;
       const rz = x * sinY + z * cosY;
 
-      // Translate camera
-      const tx = rx - camX;
+      // In the camera's aligned frame, project from the camera coordinates
+      const tx = rx;
       const ty = ry - camY;
-      const tz = rz - camZ;
-
-      const fov = 350; // Camera focal length
-      if (tz + fov <= 5) return null; // Behind camera plane
       
-      const scale = fov / (fov + tz);
+      const camRadius = 380;
+      const tz = camRadius - rz; // depth along camera's view axis
+
+      if (tz <= 15) return null; // Behind camera or too close
+      
+      const fov = 350; // Camera focal length
+      const scale = fov / tz;
       const px = width / 2 + tx * scale;
       const py = height / 2 + ty * scale;
 
@@ -809,6 +813,7 @@
       // Camera orbital pathing math
       // Slow rotation over time
       const timeScale = currentTime * 0.05 + 1.2;
+      cameraAngle = timeScale;
       const camRadius = 380;
       const camX = Math.sin(timeScale) * camRadius;
       const camZ = Math.cos(timeScale) * camRadius;
